@@ -1,0 +1,34 @@
+/*********************************/
+/*             Helper            */
+/*===============================*/
+
+body {
+    @apply font-plusjakarta text-base text-slate-900 dark:text-white;
+}
+
+.container {
+    @apply w-full mx-auto px-3;
+}
+
+p {
+    @apply leading-relaxed;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    @apply font-plusjakarta leading-normal;
+}
+
+::selection {
+    @apply bg-emerald-500/90 text-white;
+}
+
+::selection {
+    @apply bg-emerald-600/90 text-white;
+}
+.vs__dropdown-toggle{
+    @apply h-[60px] bg-transparent !border-0 !text-slate-200;
+
+}
+.vs__selected{
+    @apply !text-slate-400;
+}

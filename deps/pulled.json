@@ -1,0 +1,13 @@
+{
+  "canisters": {
+    "rdmx6-jaaaa-aaaaa-aaadq-cai": {
+      "name": "internet_identity",
+      "wasm_hash": "c4dd7fd20ad0ae82eb9c43cd2073df5a61f011d6a38df29eb6c07da3ddac3b1a",
+      "wasm_hash_download": "c4dd7fd20ad0ae82eb9c43cd2073df5a61f011d6a38df29eb6c07da3ddac3b1a",
+      "init_guide": "Use '(null)' for sensible defaults. See the candid interface for more details.",
+      "init_arg": "(opt record { captcha_config = opt record { max_unsolved_captchas= 50:nat64; captcha_trigger = variant {Static = variant {CaptchaDisabled}}}})",
+      "candid_args": "(opt InternetIdentityInit)",
+      "gzip": true
+    }
+  }
+}
