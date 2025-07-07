@@ -1,24 +1,27 @@
-# Nuxt dev/build outputs
-.output
-.data
-.nuxt
-.nitro
-.cache
-dist
+# Various IDEs and Editors
+.vscode/
+.idea/
+**/*~
 
-# Node dependencies
-node_modules
-
-# Logs
-logs
-*.log
-
-# Misc
+# Mac OSX temporary files
 .DS_Store
-.fleet
-.idea
+**/.DS_Store
 
-# Local env files
+# dfx temporary files
+.dfx/
+
+# generated files
+**/declarations/
+
+# rust
+target/
+
+# frontend code
+node_modules/
+dist/
+.svelte-kit/
+
+# environment variables
 .env
-.env.*
-!.env.example
+
+.mops
