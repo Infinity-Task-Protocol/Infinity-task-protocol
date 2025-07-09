@@ -36,7 +36,6 @@ export const useSessionStore = defineStore('session', () => {
     async function init() {
         if (initialized.value) return
         loading.value = true
-
         try {
             const authClient = await AuthClient.create()
             const newIdentity = authClient.getIdentity()
@@ -69,7 +68,7 @@ export const useSessionStore = defineStore('session', () => {
 
         try {
             const response = await backend.value.signIn()
-
+            console.log(response)
             if ('Ok' in response) {
                 user.value = response.Ok.user
                 notifications.value = response.Ok.notifications
@@ -81,52 +80,6 @@ export const useSessionStore = defineStore('session', () => {
         }
     }
 
-    function openLoginModal() {
-        isModalOpen.value = true
-    }
-
-    function closeLoginModal() {
-        isModalOpen.value = false
-    }
-
-    async function login(providerUrl: string) {
-        try {
-            const authClient = await AuthClient.create()
-
-            await authClient.login({
-                maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000),
-                identityProvider: providerUrl,
-                onSuccess: async () => {
-                    const newIdentity = authClient.getIdentity()
-                    await setIdentity(newIdentity)
-                    isAuthenticated.value = true
-                    await signIn()
-                },
-                onError: (err) => {
-                    console.error('Error al iniciar sesión:', err)
-                }
-            })
-        } catch (error) {
-            console.error('Login error:', error)
-        }
-    }
-
-    async function logout() {
-        try {
-            user.value = null
-            notifications.value = []
-            msgs.value = []
-
-            const authClient = await AuthClient.create()
-            await authClient.logout()
-
-            const anon = new AnonymousIdentity()
-            await setIdentity(anon)
-            isAuthenticated.value = false
-        } catch (error) {
-            console.error('Logout error:', error)
-        }
-    }
 
     function updateUser(u: User) {
         user.value = u
@@ -150,11 +103,13 @@ export const useSessionStore = defineStore('session', () => {
         isLoggedIn, unreadNotifications, unreadMessagesCount,
 
         // actions
-        init, setIdentity, signIn, login, logout,
-        openLoginModal, closeLoginModal,
+        init, setIdentity, signIn,
         updateUser, updateNotifications, updateUnreadMessages
     }
 }, {
-
+    persist: {
+        storage: localStorage,
+        pick: ['user', 'isAuthenticated']
+    }
 })
 

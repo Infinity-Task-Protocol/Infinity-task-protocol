@@ -1,6 +1,11 @@
 <script setup lang="ts">
+import { initFlowbite} from 'flowbite'
 
-import '@/assets/libs/@iconscout/unicons/css/line.css'
+onMounted(()=>{
+  if (process.client) {
+    initFlowbite()
+  }
+})
 </script>
 
 <template>
@@ -11,10 +16,3 @@ import '@/assets/libs/@iconscout/unicons/css/line.css'
 
 </template>
 
-<Head>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-<link
-    rel="stylesheet"
-    href="https://unicons.iconscout.com/release/v4.0.0/css/unicons.css"
-/>
-</Head>

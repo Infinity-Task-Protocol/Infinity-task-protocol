@@ -13,6 +13,11 @@
 /* Tailwind CSS */
 @import "tailwindcss";
 
+@import "flowbite/src/themes/default.css";
+@plugin "flowbite/plugin";
+@source "../../node_modules/flowbite";
+
+@tailwind utilities;
 /* Dark mode */
 @custom-variant dark (&:where(.dark, .dark *));
 

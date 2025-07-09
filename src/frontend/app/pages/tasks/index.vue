@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import logo5 from '@/assets/images/company/spotify.png'
 const session = useSessionStore()
-const updatedTasks = ref([])
+const updatedTasks = ref<any[]>([])
 onMounted(async () => {
   //await session.init();
   try {
@@ -11,13 +11,13 @@ onMounted(async () => {
     updatedTasks.value = tasks.arr.map((task, i) => ({
       ...task,
       id: i,
-      name: tasks.arr[i].title,
+      name: tasks.arr[i]?.title,
       image: logo5,
-      salary: `${tasks.arr[i].rewardRange[0]} to ${tasks.arr[i].rewardRange[1]} USDC`,
+      salary: `${tasks.arr[i]?.rewardRange[0]} to ${tasks.arr[i]?.rewardRange[1]} USDC`,
       day: "2 days ago",
       type: "Full Time",
       time: "1 to 3 months",
-      language: tasks.arr[i].keywords,
+      language: tasks.arr[i]?.keywords,
       location: "Argentina"
     }))
   } catch (error) {
@@ -60,12 +60,15 @@ onMounted(async () => {
       <div class="grid md:grid-cols-12 grid-cols-1 gap-[30px]">
         <JobsSideBar/>
         <div class="lg:col-span-8 md:col-span-6">
-          <div class="grid grid-cols-1 gap-[30px]">
+          <div v-if="updatedTasks" class="grid grid-cols-1 gap-[30px]">
             <JobsJobListTaskCard
                 v-for="item in updatedTasks"
                 :key="item.id"
                 v-bind="item"
             />
+          </div>
+          <div v-else class="grid grid-cols-1 gap-[30px]">
+            <h2> No hay datos disponibles</h2>
           </div>
           <Pagination/>
         </div>
