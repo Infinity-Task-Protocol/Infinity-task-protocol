@@ -111,7 +111,7 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
         };
         let metadata = await tokenLedger.icrc1_metadata();
         var name = "";
-        var logo: Blob = "";
+        var logo = "";
         var symbol = "";
         var decimals = 0;
         var fee = 0;
@@ -120,6 +120,7 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
            switch (field) {
             case ("icrc1:name", #Text(_name)) { name := name };
             case ("icrc1:symbol", #Text(_symbol)) { symbol := symbol };
+            case ("icrc1:logo", #Text(_logo)) {logo := _logo};
             case ("icrc1:fee", #Nat(_fee)) { fee := _fee };
             case ("icrc1:decimals", #Nat(_decimals)) { decimals := _decimals };
             case _ {}

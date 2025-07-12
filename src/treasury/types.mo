@@ -14,7 +14,7 @@ module {
     public type Token = {
         name: Text;
         symbol: Text;
-        logo: Blob;
+        logo: Text;
         fee: Nat;
         decimals: Nat;
         canisterId: Principal
