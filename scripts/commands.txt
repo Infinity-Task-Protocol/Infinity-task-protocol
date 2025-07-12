@@ -1,0 +1,27 @@
+// Create task
+dfx canister call backend createTask '(
+  record {
+    title = "Corregir error";
+    assets = vec {
+      record {
+        mimeTypes = "text/x-c++src";
+        data = blob "23/69/6e/63/6c/75/64/65/20/3c/69/6f/73/74/72/65/61/6d/3e/0a/0a/69/6e/74/20/6d/61/69/6e/28/29/20/7b/0a/20/20/69/6e/74/20/6e/75/6d/65/72/6f/20/3d/20/22/68/6f/6c/61/22/3b/20/2f/2f/20/e2/9d/8c/20/45/72/72/6f/72/3a/20/61/73/69/67/6e/61/63/69/c3/b3/6e/20/64/65/20/63/61/64/65/6e/61/20/61/20/65/6e/74/65/72/6f/0a/20/20/73/74/64/3a/3a/63/6f/75/74/20/3c/3c/2";
+      };
+    };
+    description = "Corregir este error en mi codigo C ++";
+    keywords = vec { "C++"; "Backend" };
+    rewardRange = record { 20 : nat; 30 : nat };
+  },
+)'
+
+// updateTask 
+dfx canister call backend updateTask ' (
+  record {
+    id = 2 : nat;
+    data = record {
+      title = "Corregir este error por favor!!!!!!!!";
+      description = "Corregir este error en mi codigo C ++";
+      rewardRange = record { 30 : nat; 40 : nat };
+    };
+  },
+)'
