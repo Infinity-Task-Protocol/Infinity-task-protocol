@@ -3,12 +3,13 @@ import { now } "mo:base/Time";
 import Array "mo:base/Array";
 import List "mo:base/List";
 import Map "mo:map/Map";
-import { phash; nhash } "mo:map/Map";
+import { phash; nhash; thash } "mo:map/Map";
 import Principal "mo:base/Principal";
 import Buffer "mo:base/Buffer";
 import Nat64 "mo:base/Nat64";
 import Nat "mo:base/Nat";
 import Text "mo:base/Text";
+import Iter "mo:base/Iter";
 import LedgerTypes "../interfaces/ICP_Token/ledger_icp";
 
 
@@ -30,7 +31,10 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
         "escrows0000000000000000000000000",
     ];
     stable let escrows = Map.new<Types.EscrowId, Types.Escrow>();
+
     stable let token_icp_canister_id = Principal.fromText("ryjl3-tyaaa-aaaaa-aaaba-cai");
+    stable let supportedTokens = Map.new<Text, Types.Token>();
+
     stable var lastEscrowId = 0;
     stable var lastMemoTransactionId = 0;
 
@@ -83,22 +87,6 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
         return false;
     };
 
-    // public shared ({ caller }) func internalBalances(): async [Types.Balance] {
-    //     assert isAdmin(caller);
-    //     let bufferBalances = Buffer.fromArray<Types.Balance>([]);
-    //     for (subaccount in internalSubaccounts.vals()) {
-    //         let account = {owner = Principal.fromActor(this); subaccount = ?subaccount};
-    //         let balance = await remoteLedger(token_icp_canister_id).icrc1_balance_of(account);
-    //         bufferBalances.add((account, balance))
-    //     };
-    //     Buffer.toArray<Types.Balance>(bufferBalances)  
-    // };
-
-    public shared query ({ caller }) func balancesOf(p: Principal): async ?[Types.Balance] {
-        assert isAdmin(caller);
-        Map.get<Principal, [Types.Balance]>(withdrawableBalances, phash, p)
-    };
-
     public shared ({ caller }) func removeAdmin(a: Principal): async Bool{
         assert isAdmin(caller) and a != superAdmin;
         for( admin in admins.vals()){
@@ -116,6 +104,60 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
         return false;
     };
 
+    public shared ({ caller }) func addToken(canisterId: Principal): async Bool {
+        assert isAdmin(caller);
+        let tokenLedger = actor(Principal.toText(canisterId)): actor {
+            icrc1_metadata : shared query () -> async [(Text, Types.MetadataValue)];
+        };
+        let metadata = await tokenLedger.icrc1_metadata();
+        var name = "";
+        var logo: Blob = "";
+        var symbol = "";
+        var decimals = 0;
+        var fee = 0;
+    
+        for (field in metadata.vals()) {
+           switch (field) {
+            case ("icrc1:name", #Text(_name)) { name := name };
+            case ("icrc1:symbol", #Text(_symbol)) { symbol := symbol };
+            case ("icrc1:fee", #Nat(_fee)) { fee := _fee };
+            case ("icrc1:decimals", #Nat(_decimals)) { decimals := _decimals };
+            case _ {}
+           }
+        };
+        if (name == "" or symbol == "" or decimals == 0 or fee != 0) {
+            return false
+        };
+        let newToken: Types.Token = {
+            name;
+            symbol;
+            logo;
+            fee;
+            decimals;
+            canisterId;
+        };            
+        ignore Map.put<Text, Types.Token>(supportedTokens, thash, name, newToken);
+        true 
+    };
+
+    // public shared ({ caller }) func internalBalances(): async [Types.Balance] {
+    //     assert isAdmin(caller);
+    //     let bufferBalances = Buffer.fromArray<Types.Balance>([]);
+    //     for (subaccount in internalSubaccounts.vals()) {
+    //         let account = {owner = Principal.fromActor(this); subaccount = ?subaccount};
+    //         let balance = await remoteLedger(token_icp_canister_id).icrc1_balance_of(account);
+    //         bufferBalances.add((account, balance))
+    //     };
+    //     Buffer.toArray<Types.Balance>(bufferBalances)  
+    // };
+
+
+
+    public shared query ({ caller }) func balancesOf(p: Principal): async ?[Types.Balance] {
+        assert isAdmin(caller);
+        Map.get<Principal, [Types.Balance]>(withdrawableBalances, phash, p)
+    };
+
     public shared query ({ caller }) func getDepositAccount(u: Principal): async Account{
         assert isAdmin(caller);
         getAccountByUser(u)
@@ -125,6 +167,10 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
 
     public query func getAdmins(): async [Principal]{
         admins
+    };
+
+    public query func getSupportedTokens(): async [Types.Token] {
+        Iter.toArray<Types.Token>(Map.vals<Text, Types.Token>(supportedTokens))
     };
 
     public shared query ({ caller }) func getMyDepositAccount(): async Account {

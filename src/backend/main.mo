@@ -12,8 +12,10 @@ import Blob "mo:base/Blob";
 import Nat "mo:base/Nat";
 import Text "mo:base/Text";
 import Ledger "../interfaces/ICP_Token/ledger_icp";
+import icrc2 "../interfaces/icrc2";
 import TreasuryTypes "../treasury/types";
 import ChatTypes "../chat/types";
+
 shared ({caller = DEPLOYER}) actor class() {
 
   type User = Types.User;
@@ -42,6 +44,16 @@ shared ({caller = DEPLOYER}) actor class() {
     fixedPart = 10_000_000; // 0.1 ICP
     permilePart = 56 // 54 permile -> 5.6% ammount
   };
+
+  // type Token = {
+  //   name: Text;
+  //   symbol: Text;
+  //   fee: Nat;
+  //   decimal: Nat;
+  //   canisterId: Principal
+  // };
+
+  // stable let supportedTokens = Map.new<Text, Token>();
 
   ///////////// Canisters ids /////////////
 
@@ -97,6 +109,19 @@ shared ({caller = DEPLOYER}) actor class() {
     assert isAdmin(caller) and Principal.isAnonymous(chatCanisterId);
     chatCanisterId := p;
   };
+
+  // public shared ({ caller }) func addToken(canisterID: Principal): async Bool {
+  //   assert isAdmin(caller);
+  //   let token = actor(Principal.toText(canisterID)): actor {
+  //     icrc1_fee : shared query () -> async Nat;
+  //     icrc1_name : shared query () -> async Text;
+  //     icrc1_symbol : shared query () -> async Text;
+  //     icrc1_metadata : shared query () -> async [(Text, icrc2.MetadataValue)];
+  //   };
+
+  //   false
+
+  // };
 
   ////////////////// Admin functions /////////////////////
 

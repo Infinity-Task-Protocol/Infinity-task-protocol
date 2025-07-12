@@ -95,6 +95,7 @@ module {
         description : Text;
         keywords : [Text];
         rewardRange : (Nat, Nat);
+        token: Text;  // selector en el front con los tokens soportados getTokensSupported() -> [Text]
         assets : [{ mimeType : Text; data : Blob }];
     };
 
@@ -161,6 +162,7 @@ module {
             memoTransaction = null;
             keywords = [];
             rewardRange = (0, 0);
+            token = "ICP";
             start = null;
             status = #ToDo(0);
             title = "";

@@ -4,9 +4,20 @@
       "main": "src/backend/main.mo",
       "type": "motoko",
       "declarations": {
-        "output": "./src/frontend/declarations/backend"
+        "output": "./src/frontend/src/declarations/backend"
       },
       "specified_id": "gyjow-laaaa-aaaak-quh6q-cai"
+    },
+    "treasury": {
+      "main": "src/treasury/treasury.mo",
+      "type": "motoko",
+      "declarations": {
+        "output": "./src/frontend/src/declarations/treasury"
+      },
+      "dependencies": [
+        "backend"
+      ],
+      "init_arg": "(record { mainPlatform = principal \"gyjow-laaaa-aaaak-quh6q-cai\" })"
     },
     "frontend": {
       "source": [
@@ -14,6 +25,10 @@
       ],
       "type": "assets",
       "specified_id": "grkfk-5iaaa-aaaak-quh7a-cai"
+    },
+    "icp_ledger": {
+      "type": "pull",
+      "id": "ryjl3-tyaaa-aaaaa-aaaba-cai"
     },
     "internet_identity": {
       "type": "pull",

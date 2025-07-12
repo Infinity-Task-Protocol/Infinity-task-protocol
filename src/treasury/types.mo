@@ -11,6 +11,22 @@ module {
         subaccount: ?Blob;
     };
 
+    public type Token = {
+        name: Text;
+        symbol: Text;
+        logo: Blob;
+        fee: Nat;
+        decimals: Nat;
+        canisterId: Principal
+    };
+
+    public type MetadataValue = {
+        #Int : Int;
+        #Nat : Nat;
+        #Blob : Blob;
+        #Text : Text;
+    };
+
     public type AccountIdentifier = Text;
 
     public type ActivityLogEntry = {
