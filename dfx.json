@@ -5,18 +5,19 @@
       "type": "motoko",
       "declarations": {
         "output": "./src/frontend/declarations/backend"
-      }
+      },
+      "specified_id": "gyjow-laaaa-aaaak-quh6q-cai"
     },
     "frontend": {
       "source": [
         "src/frontend/.output/public"
       ],
-      "type": "assets"
+      "type": "assets",
+      "specified_id": "grkfk-5iaaa-aaaak-quh7a-cai"
     },
     "internet_identity": {
       "type": "pull",
-      "id": "rdmx6-jaaaa-aaaaa-aaadq-cai",
-      "frontend": {}
+      "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
     }
   },
   "defaults": {
@@ -26,5 +27,6 @@
     }
   },
   "output_env_file": ".env",
-  "version": 1
+  "version": 1,
+  "dfx": "0.27.0"
 }
