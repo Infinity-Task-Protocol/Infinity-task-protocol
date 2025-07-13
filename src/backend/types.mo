@@ -8,7 +8,6 @@ module {
         principal : Principal;
         name : Text;
         avatar : ?Blob;
-        thumbnail: ?Blob;
         email : ?Text;
         verified : Bool;
         score : Nat;
@@ -18,6 +17,7 @@ module {
 
     public type UserUpdatableData = {
         name : ?Text;
+        avatar : ?Blob;
         email : ?Text;
     };
 
@@ -26,7 +26,6 @@ module {
             principal = Principal.fromText("2vxsx-fae");
             name = "";
             avatar = null;
-            thumbnail = null;
             email = null;
             verified = false;
             score = 0;
@@ -72,11 +71,23 @@ module {
         #Err : Text;
     };
 
+    public type Asset = {
+        id: Nat;
+        withAccess: [Principal];
+        mimeType : Text;
+        data : Blob;
+    };
+
+    type Timestamp = Int;
     public type TaskStatus = {
-        #ToDo;
-        #InProgress;
-        #Cancelled;
-        #Done;
+        #ToDo: Timestamp;
+        #AcceptedOffer: Timestamp;
+        #PaymentDepositDone: Timestamp;
+        #InProgress: Timestamp;
+        #Delivered: Timestamp;
+        #ReleasingPayment;
+        #Cancelled: Timestamp;
+        #Done: Timestamp;
     };
 
     public type TaskDataInit = {
@@ -84,6 +95,7 @@ module {
         description : Text;
         keywords : [Text];
         rewardRange : (Nat, Nat);
+        token: Text;  // selector en el front con los tokens soportados getTokensSupported() -> [Text]
         assets : [{ mimeType : Text; data : Blob }];
     };
 
@@ -99,11 +111,13 @@ module {
         status : TaskStatus;
         assignedTo : ?Principal;
         bidsCounter : Nat;
+        chatId: ?Nat32;
     };
 
     public type TaskPreview = {
         id : Nat;
         owner : Principal;
+        status : TaskStatus;
         title : Text;
         description : Text;
         keywords : [Text];
@@ -114,8 +128,11 @@ module {
 
     public type Task = TaskExpand and {
         bids : Map.Map<Principal, Offer>;
-        finalAmount : ?Nat;
+        finalAmount : Nat;
+        payed: Bool;
+        memoTransaction: ?Blob;
         start : ?Int;
+        chatId: ?Nat32;
     };
 
     public type UpdatableDataTask = {
@@ -123,6 +140,13 @@ module {
         description : Text;
         rewardRange : (Nat, Nat);
     };
+    
+    public type AcceptedDeliveryArgs = {
+        taskId: Nat;
+        qualification: Nat8;
+        review: Text;
+    };
+
     public func defaultTask() : Task {
         {
             id = 0;
@@ -133,12 +157,16 @@ module {
             bidsCounter = 0;
             createdAt = 0;
             description = "";
-            finalAmount = null;
+            finalAmount = 0;
+            payed = false;
+            memoTransaction = null;
             keywords = [];
             rewardRange = (0, 0);
+            token = "ICP";
             start = null;
-            status = #ToDo;
+            status = #ToDo(0);
             title = "";
+            chatId = null;
         }
 
     }
