@@ -1,4 +1,5 @@
-# ♾ Infinity Task Protocol — Fully On-Chain Freelance Service Platform on ICP
+# <img src="./captures/LogoITP178x178.svg" alt="Infinity Task Protocol" width="100" height="100" style="vertical-align: middle;"> Infinity Task Protocol
+## Fully On-Chain Freelance Service Platform on ICP
 
 **Infinity Task Protocol** is a fully on-chain platform built on the Internet Computer (ICP), designed to facilitate freelance service exchange between clients and workers with ultra-low fees, instant payouts, and full transparency.
 
