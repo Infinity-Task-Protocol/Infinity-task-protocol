@@ -4,6 +4,10 @@
 
 ---
 
+#### [Deploy instructions](DeployInstructions.md#L1)
+
+---
+
 ## 🚨 The Problem
 
 Traditional freelance platforms like Upwork or Fiverr suffer from:
