@@ -116,6 +116,7 @@ dfx canister call backend createTask '(record {
     description = "Description test task 1";
     keywords = vec { "Test"; "Motoko" };
     rewardRange = record { 500000000 : nat; 1000000000 : nat };
+    token = "ICP"
 })'
 
 echo "🧪 Freelancer0 signs up, verifies, and applies for the task..."

@@ -58,7 +58,57 @@ Traditional freelance platforms like Upwork or Fiverr suffer from:
    - Any **CEX that supports the ICP network**.
 
 ---
+## Pre-Qualification Round Status
+A functional MVP with the following features implemented:
 
+#### [Backend](https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=gyjow-laaaa-aaaak-quh6q-cai)
++ User registration
++ Task creation and publishing
++ Freelancers can submit offers
++ Task owners can accept offers
++ Task delivery by freelancers
+
+#### [Frontend](https://grkfk-5iaaa-aaaak-quh7a-cai.icp0.io/)
+![alt text](captures/image.png)
+* Integration with Internet Identity and NFID:
+![alt text](captures/image-1.png)
+* Profile view and avatar upload:
+![alt text](captures/image-2.png)
+* Form for creating new tasks:
+![alt text](captures/image-3.png)
+* Browsing available public tasks:
+![alt text](captures/image-4.png)
+* Expanded view of a task:
+![alt text](captures/image-8.png)
+* View of the task publisher's profile:
+![alt text](captures/image-6.png)
+* Submit an Offer. Placing an offer on a task:
+![alt text](captures/image-7.png)
+* Viewing offers received on owned tasks:
+![alt text](captures/image-9.png)
+---
+## Development During the Qualification Round
+#### Backend
+##### [Treasury Canister](candidTreasuryLink)
+* Development and integration of the Treasury canister
+   * Architecture design:
+      ![alt text](captures/acceptOfferFlow.png)
+      ![alt text](captures/deliveryTaskFlow.png)
+   * Inter-canister communication: Main ⇄ Treasury ⇄ Ledger
+   * Main ➜ Treasury. Creation of escrows upon offer acceptance, linked to assigned tasks. [Call](./src/backend/main.mo#L518) ➜ [Remote Function](./src/treasury/treasury.mo#L200-L221)
+   * Treasury ➜ TokenLedger. Transaction verification. [Call](./src/treasury/treasury.mo#L205) 
+   * Main Treasury. Escrow release to freelancer upon task delivery approval. [Call](./src/backend/main.mo#L613-L615) ➜ [Remote Function](./src/treasury/treasury.mo#L223-L251)
+   * Application of platform fee for completed tasks. [Code](./src/treasury/treasury.mo#L246)
+   * Withdrawals from Treasury canister to user-defined external wallets. [Call](./src/treasury/treasury.mo#L271)
+   * Full payment integration with any ICRC2 whitelist tokens, settable by administration or incorporated on demand. [Code](./src/treasury/treasury.mo#L107-L142)
+      * Approval of token listing requests is contingent upon the token's verifiable presence on both decentralized (DEX) and/or centralized (CEX) exchanges with active and consistent market data (price discovery). This ensures a minimum standard of liquidity, legitimacy, and user protection against fraudulent or illiquid assets.
+      * Obtaining a list of possible tokens acceptable for paying for a task [Code](./src/treasury/treasury.mo#L173-L175)
+##### User Notifications
+* 
+
+
+
+---
 ## 🌐 Live Dapp
 
 > ✅ **[Launch App on ICP Mainnet](https://grkfk-5iaaa-aaaak-quh7a-cai.icp0.io/)**  

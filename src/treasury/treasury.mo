@@ -231,18 +231,18 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
                     case ( ?balances ) { balances }
                 };
                 let bufferBalances = Buffer.Buffer<Types.Balance>(0);
-                var flagUpdated = false;
-                for (balance in currentUserBalances.vals() ) {
-                    if (balance.token != escrow.token) {
-                        bufferBalances.add(balance);
+                var currentBalanceOfTokenUsed = 0;
+                for (currentBal in currentUserBalances.vals() ) {
+                    if (currentBal.token != escrow.token) {
+                        bufferBalances.add(currentBal);
                     } else  {
-                        bufferBalances.add({balance with balance = balance.balance + escrow.amount - escrow.platformFee: Nat});
-                        flagUpdated := true;
+                        currentBalanceOfTokenUsed := currentBal.balance;
                     };
                 };
-                if (not flagUpdated) {
-                    bufferBalances.add({token = escrow.token; balance = escrow.amount - escrow.platformFee: Nat});
-                };
+                bufferBalances.add({
+                    token = escrow.token; 
+                    balance = currentBalanceOfTokenUsed + escrow.amount - escrow.platformFee: Nat
+                });
                 let updatedBalances = Buffer.toArray<Types.Balance>(bufferBalances);
                 ignore Map.put<Principal, [Types.Balance]>(withdrawableBalances, phash, escrow.userAssigned, updatedBalances);
                 return true
