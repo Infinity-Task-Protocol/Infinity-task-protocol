@@ -132,9 +132,4 @@ A functional MVP with the following features implemented:
 
 ## 📄 Documentation
 
-### 🔧 Local Development
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/youruser/infinity-task-protocol.git
-   cd infinity-task-protocol
+TODO
