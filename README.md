@@ -3,6 +3,8 @@
 **Infinity Task Protocol** is a fully on-chain platform built on the Internet Computer (ICP), designed to facilitate freelance service exchange between clients and workers with ultra-low fees, instant payouts, and full transparency.
 
 ---
+#### [Whitepaper](Whitepaper.md#L1)
+---
 
 #### [Deploy instructions](DeployInstructions.md#L1)
 
