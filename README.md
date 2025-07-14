@@ -1,13 +1,15 @@
-# <img src="./captures/LogoITP178x178.svg" alt="Infinity Task Protocol" width="100" height="100" style="vertical-align: middle;"> Infinity Task Protocol
+# <img src="./captures/LogoITP178x178.svg" alt="Infinity Task Protocol" width="100" height="100" style="vertical-align: middle;"> Infinity Tasks Protocol
 ## Fully On-Chain Freelance Service Platform on ICP
 
 **Infinity Task Protocol** is a fully on-chain platform built on the Internet Computer (ICP), designed to facilitate freelance service exchange between clients and workers with ultra-low fees, instant payouts, and full transparency.
 
 ---
-#### [Whitepaper](Whitepaper.md#L1)
+##### [Whitepaper](Whitepaper.md#L1)
 ---
+This project is licensed under the MIT License – see the [LICENSE](./LICENSE) file for details.
 
-#### [Deploy instructions](DeployInstructions.md#L1)
+---
+##### [Deploy instructions](DeployInstructions.md#L1)
 
 ---
 
