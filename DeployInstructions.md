@@ -1,13 +1,15 @@
 Deploy instructions:
 
-git clone https://github.com/Infinity-Task-Protocol/Infinity-task-protocol.git
-cd Infinity-task-protocol
+`git clone https://github.com/Infinity-Task-Protocol/Infinity-task-protocol.git`
 
-dfx start --clean --background
-dfx generate backend
+`cd Infinity-task-protoco`
 
-dfx deps pull
-dfx deps init internet_identity
+`dfx start --clean --background`
+`dfx generate backend`
+
+`dfx deps pull`
+`dfx deps init internet_identity`
+``` bash
 dfx deps init icp_ledger --argument "(variant { 
     Init = record {
         minting_account = \"$(dfx ledger account-id)\";
@@ -18,10 +20,13 @@ dfx deps init icp_ledger --argument "(variant {
         token_name = opt \"Local ICP\"; 
     }
 })"
-dfx deps deploy
+```
+`dfx deps deploy`
 
-dfx deploy backend
+`dfx deploy backend`
 
-cd src/frontend
-npm install
-npm run build
+`cd src/frontend`
+`npm install`
+`npm run build`
+
+Will continue ...

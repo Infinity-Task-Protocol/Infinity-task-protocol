@@ -1,6 +1,15 @@
-# ♾ Infinity Task Protocol — Fully On-Chain Freelance Service Platform on ICP
+# <img src="./captures/LogoITP178x178.svg" alt="Infinity Task Protocol" width="100" height="100" style="vertical-align: middle;"> Infinity Tasks Protocol
+## Fully On-Chain Freelance Service Platform on ICP
 
 **Infinity Task Protocol** is a fully on-chain platform built on the Internet Computer (ICP), designed to facilitate freelance service exchange between clients and workers with ultra-low fees, instant payouts, and full transparency.
+
+---
+##### [Whitepaper](Whitepaper.md#L1)
+---
+This project is licensed under the MIT License – see the [LICENSE](./LICENSE) file for details.
+
+---
+##### [Deploy instructions](DeployInstructions.md#L1)
 
 ---
 
@@ -103,8 +112,18 @@ A functional MVP with the following features implemented:
    * Full payment integration with any ICRC2 whitelist tokens, settable by administration or incorporated on demand. [Code](./src/treasury/treasury.mo#L107-L142)
       * Approval of token listing requests is contingent upon the token's verifiable presence on both decentralized (DEX) and/or centralized (CEX) exchanges with active and consistent market data (price discovery). This ensures a minimum standard of liquidity, legitimacy, and user protection against fraudulent or illiquid assets.
       * Obtaining a list of possible tokens acceptable for paying for a task [Code](./src/treasury/treasury.mo#L173-L175)
+
+##### Viewing user balances for the different tokens used on the platform
+This consists of a call from the frontend to the Treasury canister to bring the internal balances that the user has internally on the platform.
+
 ##### User Notifications
-* 
+
+"Push notifications" for users regarding events such as:
++ New offer to complete a task. ➜ Task Owner
++ Offer accepted. ➜ Freelancer who placed the offer.
++ Task submission completed. ➜ Task Owner
++ Submission accepted and balance update. ➜ Freelancer
++ Generic or platform notifications ➜ Users.
 
 
 
@@ -119,15 +138,10 @@ A functional MVP with the following features implemented:
 ## 📹 Demo Video
 
 🎥 Code and architecture walkthrough with voiceover:  
-**[Watch the demo here](https://your-demo-link.com)**
+**[Watch the demo here](https://www.youtube.com/@InfinityTaskProtocol)**
 
 ---
 
 ## 📄 Documentation
 
-### 🔧 Local Development
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/youruser/infinity-task-protocol.git
-   cd infinity-task-protocol
