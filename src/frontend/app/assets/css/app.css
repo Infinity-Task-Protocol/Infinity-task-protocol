@@ -13,9 +13,7 @@
 /* Tailwind CSS */
 @import "tailwindcss";
 
-@import "flowbite/src/themes/default.css";
-@plugin "flowbite/plugin";
-@source "../../node_modules/flowbite";
+@import "@nuxt/ui";
 
 @tailwind utilities;
 /* Dark mode */
