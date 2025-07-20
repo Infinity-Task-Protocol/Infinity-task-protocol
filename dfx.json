@@ -4,7 +4,7 @@
       "main": "src/backend/main.mo",
       "type": "motoko",
       "declarations": {
-        "output": "./src/frontend/src/declarations/backend"
+        "output": "./src/declarations/backend"
       },
       "specified_id": "gyjow-laaaa-aaaak-quh6q-cai"
     },
@@ -12,7 +12,7 @@
       "main": "src/treasury/treasury.mo",
       "type": "motoko",
       "declarations": {
-        "output": "./src/frontend/src/declarations/treasury"
+        "output": "./src/declarations/treasury"
       },
       "dependencies": [
         "backend"
