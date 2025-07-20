@@ -1,18 +1,14 @@
 <script setup lang="ts">
-import { initFlowbite} from 'flowbite'
 
-onMounted(()=>{
-  if (process.client) {
-    initFlowbite()
-  }
-})
 </script>
 
 <template>
-
+  <UApp>
   <NuxtLayout>
-    <NuxtPage/>
-  </NuxtLayout>
 
+      <NuxtPage />
+
+  </NuxtLayout>
+  </UApp>
 </template>
 

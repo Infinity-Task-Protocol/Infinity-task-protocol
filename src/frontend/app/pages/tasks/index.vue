@@ -6,11 +6,11 @@ onMounted(async () => {
   //await session.init();
   try {
     const tasks = await session.backend.getPaginateTaskPreview({page: BigInt(0), qtyPerPage: [BigInt(50)]})
-
+    console.log(tasks)
 
     updatedTasks.value = tasks.arr.map((task, i) => ({
       ...task,
-      id: i,
+      id: task.id.toString(),
       name: tasks.arr[i]?.title,
       image: logo5,
       salary: `${tasks.arr[i]?.rewardRange[0]} to ${tasks.arr[i]?.rewardRange[1]} USDC`,

@@ -55,6 +55,7 @@
       </div>
 
       <NuxtLink
+          @click="goToDetail"
           to="/"
           class="py-[5px] px-4 text-sm inline-block font-semibold tracking-wide border align-middle transition duration-500 ease-in-out text-center rounded-md bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700 text-white md:ms-2 w-full lg:w-auto lg:mt-0 mt-4"
       >
@@ -72,7 +73,8 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
+  id: string
   image: string
   name: string
   day: string
@@ -83,8 +85,14 @@ defineProps<{
   language: string[]
   location: string
 }>()
+const router = useRouter()
 
-defineOptions({ name: 'TaskCard' })
+function goToDetail() {
+  router.push(`/tasks/details/${props.id}`)
+}
+
+
+defineOptions({ code: 'TaskCard' })
 </script>
 
 <style scoped></style>

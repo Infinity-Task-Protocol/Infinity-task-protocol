@@ -3,6 +3,7 @@ import { AuthClient } from '@dfinity/auth-client'
 import { AnonymousIdentity } from '@dfinity/agent'
 
 export function useAuth() {
+    const router = useRouter()
     async function loginWith(provider: 'ii' | 'nfid') {
         const providerUrl = provider === 'ii'
             ? 'http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943'
@@ -22,6 +23,7 @@ export function useAuth() {
             },
             onError: (err) => console.error('Login error', err)
         });
+        await router.push('/')
     }
 
     async function logout() {
@@ -34,6 +36,7 @@ export function useAuth() {
         session.user = null;
         session.notifications = [];
         session.msgs = [];
+        await router.push('/')
     }
 
     return { loginWith, logout };

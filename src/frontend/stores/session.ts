@@ -3,8 +3,8 @@ import { ref, computed } from 'vue'
 import { AuthClient } from '@dfinity/auth-client'
 import { HttpAgent, AnonymousIdentity } from '@dfinity/agent'
 import type { Identity, ActorSubclass } from '@dfinity/agent'
-import type { User, Notification, Msg, _SERVICE } from '../declarations/backend/backend.did'
-import { createActor } from '../declarations/backend'
+import type { User, Notification, Msg, _SERVICE } from '../../declarations/backend/backend.did'
+import { createActor } from '../../declarations/backend'
 
 const canisterId = import.meta.env.VITE_CANISTER_ID_BACKEND as string
 const host = import.meta.env.VITE_DFX_NETWORK === 'local'
@@ -25,7 +25,7 @@ export const useSessionStore = defineStore('session', () => {
     const backend = ref<ActorSubclass<_SERVICE>>(createActor(canisterId, {
         agentOptions: { identity: identity.value, host }
     }))
-
+    //ToDo Add Treasury canister reference
     // 🧠 Getters
     const isLoggedIn = computed(() => isAuthenticated.value && user.value !== null)
     const unreadNotifications = computed(() => notifications.value.filter(n => !n.read))
