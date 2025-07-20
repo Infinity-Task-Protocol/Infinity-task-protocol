@@ -1,5 +1,5 @@
-export default defineNuxtPlugin(nuxtApp => {
+export default defineNuxtPlugin(async (nuxtApp) => {
     const sessionStore = useSessionStore()
     console.log(sessionStore.isAuthenticated)
-    sessionStore.init()
+    await sessionStore.init()
 })
