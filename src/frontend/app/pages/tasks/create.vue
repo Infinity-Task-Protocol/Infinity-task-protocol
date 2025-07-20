@@ -10,6 +10,10 @@ definePageMeta({
 
 const session = useSessionStore()
 
+//Todo Add getAcceptedToken function from Treasury canister
+
+//const acceptedTokens = session.treasury.getSupportedToken()
+
 const form = ref({
   title: '',
   description: '',
@@ -41,10 +45,14 @@ async function handleSubmit() {
     title: form.value.title,
     description: form.value.description,
     keywords: form.value.keywords,
+    token:"ICP",
     rewardRange: [BigInt(form.value.minReward), BigInt(form.value.maxReward)] as [bigint, bigint],
     assets: []
   }
-  await session.backend.createTask(payload)
+  console.log(payload)
+  await session.backend.createTask(payload).then(() => {
+    console.log("tarea creada")
+  })
 
 }
 </script>
