@@ -7,7 +7,7 @@ export function useAuth() {
     async function loginWith(provider: 'ii' | 'nfid') {
         const providerUrl = provider === 'ii'
             ? 'http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943'
-            : 'https://nfid.one/auth';
+            : 'https://nfid.one/authenticate/?applicationName=my-ic-app';
 
         const authClient = await AuthClient.create();
 
