@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "deploy": "dfx deploy backend & ../../scripts/prefixer-env.sh",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",

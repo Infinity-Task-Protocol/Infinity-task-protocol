@@ -10,6 +10,7 @@ definePageMeta({
 
 const session = useSessionStore()
 
+
 //Todo Add getAcceptedToken function from Treasury canister
 
 //const acceptedTokens = session.treasury.getSupportedToken()
@@ -29,8 +30,10 @@ function handleFiles(e: Event) {
     form.value.files = Array.from(input.files)
   }
 }
-
+const admins = await session.treasury.getSupportedTokens()
+console.log(admins)
 async function handleSubmit() {
+  
   const assetData = await Promise.all(
       form.value.files.map(async (file) => {
         const buffer = await file.arrayBuffer()

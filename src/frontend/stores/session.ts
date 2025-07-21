@@ -5,8 +5,11 @@ import { HttpAgent, AnonymousIdentity } from '@dfinity/agent'
 import type { Identity, ActorSubclass } from '@dfinity/agent'
 import type { User, Notification, Msg, _SERVICE } from '../../declarations/backend/backend.did'
 import { createActor } from '../../declarations/backend'
+import type { _SERVICE as _TREASURY_SERVICE} from '../../declarations/treasury/treasury.did'
+import { createActor as createTreasuryActor } from "../../declarations/treasury"
 
 const canisterId = import.meta.env.VITE_CANISTER_ID_BACKEND as string
+const tresuryCanisterId = import.meta.env.VITE_CANISTER_ID_TREASURY as string
 const host = import.meta.env.VITE_DFX_NETWORK === 'local'
     ? `http://localhost:4943/?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai`
     : 'https://identity.ic0.app'
@@ -25,6 +28,12 @@ export const useSessionStore = defineStore('session', () => {
     const backend = ref<ActorSubclass<_SERVICE>>(createActor(canisterId, {
         agentOptions: { identity: identity.value, host }
     }))
+
+    const treasury = ref<ActorSubclass<_TREASURY_SERVICE>>(createTreasuryActor(tresuryCanisterId, {
+        agentOptions: { identity: identity.value, host }
+    }))
+
+
     //ToDo Add Treasury canister reference
     // 🧠 Getters
     const isLoggedIn = computed(() => isAuthenticated.value && user.value !== null)
@@ -61,6 +70,7 @@ export const useSessionStore = defineStore('session', () => {
             host
         })
         backend.value = createActor(canisterId, { agent })
+        treasury.value = createTreasuryActor(tresuryCanisterId, {agent})
     }
 
     async function signIn() {
@@ -97,7 +107,7 @@ export const useSessionStore = defineStore('session', () => {
     return {
         // state
         user, notifications, msgs, identity,
-        isAuthenticated, loading, isModalOpen, initialized, backend,
+        isAuthenticated, loading, isModalOpen, initialized, backend, treasury,
 
         // getters
         isLoggedIn, unreadNotifications, unreadMessagesCount,
