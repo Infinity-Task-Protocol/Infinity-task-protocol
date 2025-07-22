@@ -1,5 +1,5 @@
 #!/bin/bash
-
+Hola
 # Deployment script for Infinity Task Protocol on local ICP environment
 # Based on the provided deployment instructions.
 
