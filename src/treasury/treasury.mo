@@ -32,8 +32,7 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
     ];
     stable let escrows = Map.new<Types.EscrowId, Types.Escrow>();
 
-    stable let token_icp_canister_id = Principal.fromText("ryjl3-tyaaa-aaaaa-aaaba-cai");
-    stable let supportedTokens = Map.new<Text, Types.Token>();
+    stable let supportedTokens = Map.make<Text, Types.Token>(thash, "Internet Computer", Types.icpToken());
 
     stable var lastEscrowId = 0;
     stable var lastMemoTransactionId = 0;
@@ -140,19 +139,6 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
         ignore Map.put<Text, Types.Token>(supportedTokens, thash, name, newToken);
         true 
     };
-
-    // public shared ({ caller }) func internalBalances(): async [Types.Balance] {
-    //     assert isAdmin(caller);
-    //     let bufferBalances = Buffer.fromArray<Types.Balance>([]);
-    //     for (subaccount in internalSubaccounts.vals()) {
-    //         let account = {owner = Principal.fromActor(this); subaccount = ?subaccount};
-    //         let balance = await remoteLedger(token_icp_canister_id).icrc1_balance_of(account);
-    //         bufferBalances.add((account, balance))
-    //     };
-    //     Buffer.toArray<Types.Balance>(bufferBalances)  
-    // };
-
-
 
     public shared query ({ caller }) func balancesOf(p: Principal): async ?[Types.Balance] {
         assert isAdmin(caller);

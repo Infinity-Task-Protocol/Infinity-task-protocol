@@ -43,6 +43,13 @@ dfx deploy backend
 dfx deploy treasury
 ```
 
+SetTreasury reference in main canister
+```sh
+dfx canister call backend setTreasuryCanisterId "(principal \"$(dfx canister id treasury)\")"
+```
+
+
+
 Build and deploy frontend canister
 
 ```sh

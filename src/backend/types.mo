@@ -36,9 +36,14 @@ module {
 
     public type Notification = {
         date : Int;
-        title : Text;
-        content : Text;
         read : Bool;
+        kind: KindNotification;
+    };
+
+    public type KindNotification = {
+        #NewBid: Nat;
+        #TaskDelivered : Nat;
+        #DeliveryAccepted: Nat;
     };
 
     public type Msg = {
@@ -72,10 +77,13 @@ module {
     };
 
     public type Asset = {
-        id: Nat;
-        withAccess: [Principal];
         mimeType : Text;
         data : Blob;
+    };
+
+    public type File = Asset and {
+        id: Nat;
+        withAccess: [Principal];
     };
 
     type Timestamp = Int;
@@ -96,7 +104,7 @@ module {
         keywords : [Text];
         rewardRange : (Nat, Nat);
         token: Text;  // selector en el front con los tokens soportados getTokensSupported() -> [Text]
-        assets : [{ mimeType : Text; data : Blob }];
+        assets : [Asset];
     };
 
     public type Offer = {
@@ -133,6 +141,7 @@ module {
         memoTransaction: ?Blob;
         start : ?Int;
         chatId: ?Nat32;
+        deliveries: [Nat];
     };
 
     public type UpdatableDataTask = {
@@ -140,9 +149,20 @@ module {
         description : Text;
         rewardRange : (Nat, Nat);
     };
+
+    public type DeliveryTask = {
+        id: Nat;
+        taskId: Nat;
+        taskOwner: Principal;
+        assets: [Asset];
+        date: Int;
+        description: Text;
+        qualification: ?Nat8;
+        review: ?Text;
+    };
     
     public type AcceptedDeliveryArgs = {
-        taskId: Nat;
+        deliveryId: Nat;
         qualification: Nat8;
         review: Text;
     };
@@ -167,6 +187,7 @@ module {
             status = #ToDo(0);
             title = "";
             chatId = null;
+            deliveries = [];
         }
 
     }
