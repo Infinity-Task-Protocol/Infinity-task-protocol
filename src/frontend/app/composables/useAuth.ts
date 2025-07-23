@@ -20,6 +20,12 @@ export function useAuth() {
                 await session.setIdentity(newIdentity);
                 session.isAuthenticated = true;
                 await session.signIn();
+
+                // redirect to verify if not register
+                if (!session.user && !session.user?.verified) await router.push('/account/register');
+
+
+
             },
             onError: (err) => console.error('Login error', err)
         });
