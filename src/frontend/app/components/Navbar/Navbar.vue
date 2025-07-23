@@ -145,7 +145,6 @@ const dropdownItems = [
           <li>
             <button
                 @click="isOpen = false; loginWith('nfid')"
-                disabled
                 class=" flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full"
             >
               <span class="flex-1 ms-3 whitespace-nowrap text-left">NFID</span>
