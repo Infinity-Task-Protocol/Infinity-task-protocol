@@ -79,6 +79,7 @@ const dropdownItems = [
       <div v-else class="flex items-center md:order-2 space-x-3">
         <UDropdownMenu
             :items="dropdownItems"
+            :modal="false"
             :popper="{ placement: 'bottom-start', offset: 8 }"
             :ui="{ content: 'w-44' }"
         >
