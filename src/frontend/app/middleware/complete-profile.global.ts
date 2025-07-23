@@ -1,16 +1,21 @@
 export default defineNuxtRouteMiddleware((to) => {
     const session = useSessionStore()
-    if (!session.isAuthenticated) return
 
-
-
+    const user = session.user
     const isAuthenticated = session.isAuthenticated
-    const isProfileComplete = session.user
 
-    const isOnProfilePage = to.path === '/account/register'
+    const isOnRegisterPage = to.path === '/account/register'
 
-    console.log(isProfileComplete, "is authenticated", isAuthenticated)
-    if (isAuthenticated && !isProfileComplete && !isOnProfilePage) {
+    // Si no está autenticado, no hacemos nada
+    if (!isAuthenticated) return
+
+    // Si está autenticado pero no tiene perfil aún
+    if (!user && !isOnRegisterPage) {
+        return navigateTo('/account/register')
+    }
+
+    // Si tiene perfil pero aún no está verificado
+    if (user && user.verified === false && !isOnRegisterPage) {
         return navigateTo('/account/register')
     }
 })
