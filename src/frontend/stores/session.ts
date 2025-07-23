@@ -5,7 +5,7 @@ import { HttpAgent, AnonymousIdentity } from '@dfinity/agent'
 import type { Identity, ActorSubclass } from '@dfinity/agent'
 import type { User, Notification, Msg, _SERVICE } from '../../declarations/backend/backend.did'
 import { createActor } from '../../declarations/backend'
-import type { _SERVICE as TREASURY_SERVICE} from '../../declarations/treasury/treasury.did'
+import type { _SERVICE as TREASURY_SERVICE, Token} from '../../declarations/treasury/treasury.did'
 import {createActor as createTreasuryActor } from '../../declarations/treasury'
 const canisterId = import.meta.env.VITE_CANISTER_ID_BACKEND as string
 const treasuryCanisterId = import.meta.env.VITE_CANISTER_ID_TREASURY as string
@@ -23,6 +23,8 @@ export const useSessionStore = defineStore('session', () => {
     const loading = ref(false)
     const isModalOpen = ref(false)
     const initialized = ref(false)
+    const supportedTokens = ref<Token[]>([])
+    const userBalances = ref<{token: string; balance: bigint}[]>([])
 
     const backend = ref<ActorSubclass<_SERVICE>>(createActor(canisterId, {
         agentOptions: { identity: identity.value, host }
@@ -73,13 +75,14 @@ export const useSessionStore = defineStore('session', () => {
         if (!isAuthenticated.value) return
 
         try {
+            supportedTokens.value = await treasury.value.getSupportedTokens()
             const response = await backend.value.signIn()
-            console.log(response)
             if ('Ok' in response) {
                 user.value = response.Ok.user
                 notifications.value = response.Ok.notifications
                 msgs.value = response.Ok.msgs
-                console.log('User signed in:', response.Ok.user)
+                console.log('User signed in:', user.value?.name)
+                userBalances.value = await treasury.value.getMyBalances()
             }
         } catch (error) {
             console.error('Error signing in:', error)
