@@ -236,8 +236,11 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
         };
     };
 
-    public shared query ({ caller }) func getMyBalances(): async ?[Types.Balance] {
-        Map.get<Principal, [Types.Balance]>(withdrawableBalances, phash, caller) 
+    public shared query ({ caller }) func getMyBalances(): async [Types.Balance] {
+        switch (Map.get<Principal, [Types.Balance]>(withdrawableBalances, phash, caller)){
+            case null [];
+            case ( ?bal ) {bal}
+        }
     };
 
     public shared ({ caller }) func withdrawal({token: Principal; amount: Nat; to: Account}): async {#Ok: Nat; #Err} {
