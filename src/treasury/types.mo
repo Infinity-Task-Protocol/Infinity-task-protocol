@@ -50,8 +50,8 @@ module {
     public type Action = {
         #AddAdmin: Principal ;
         #RemoveAdmin: Principal;
-        #Other: Text;
         #Withdraw: Nat;
+        #Other: Text;
     };
 
     // public type Balance = (Account, Nat);
