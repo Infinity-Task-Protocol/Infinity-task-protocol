@@ -19,9 +19,6 @@ const dropdownOpen = ref(false)
 const session = useSessionStore()
 const {loginWith, logout} = useAuth()
 
-// 📦 DOM refs
-const dropdownToggle = ref<HTMLElement | null>(null)
-
 
 const handleScroll = () => {
   const navbar = document.getElementById("topnav")
@@ -30,11 +27,7 @@ const handleScroll = () => {
   navbar.classList.toggle("nav-sticky", scrollY >= 50)
 }
 
-const handleClickOutside = (event: MouseEvent) => {
-  if (dropdownToggle.value && !dropdownToggle.value.contains(event.target as Node)) {
-    dropdownOpen.value = false
-  }
-}
+
 
 const scrollToTop = () => {
   window.scrollTo({top: 0, behavior: "smooth"})
@@ -46,7 +39,6 @@ onMounted(() => {
 
   activeMenu.value = window.location.pathname
   window.addEventListener('scroll', handleScroll)
-  document.addEventListener('click', handleClickOutside)
 
   scrollToTop()
 
@@ -54,18 +46,18 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
-  document.removeEventListener('click', handleClickOutside)
-  console.log(session.isAuthenticated)
 })
 
 const isOpen = ref(false)
 
 const dropdownItems = [
-  [{label: 'Dashboard', icon: 'i-heroicons-home', click: () => navigateTo('/dashboard')}],
-  [{label: 'Settings', icon: 'i-heroicons-cog-6-tooth', click: () => navigateTo('/settings')}],
-  [{label: 'Sign out', icon: 'i-heroicons-arrow-left-on-rectangle', onSelect() {
+  [{label: 'Account', icon: 'i-heroicons-home', onSelect: () => navigateTo('/account')}],
+  [{label: 'Settings', icon: 'i-heroicons-cog-6-tooth', onSelect: () => navigateTo('/account/settings')}],
+  [{
+    label: 'Sign out', icon: 'i-heroicons-arrow-left-on-rectangle', onSelect() {
       logout()
-    }}],
+    }
+  }],
 ]
 
 </script>
@@ -85,16 +77,23 @@ const dropdownItems = [
 
       <!-- Avatar con dropdown -->
       <div v-else class="flex items-center md:order-2 space-x-3">
-        <UDropdownMenu :items="dropdownItems" :content="{
-      align: 'start',
-      side: 'bottom',
-      sideOffset: 8
-    }"
-                       :ui="{
-      content: 'w-48'
-    }"
+        <UDropdownMenu
+            :items="dropdownItems"
+            :popper="{ placement: 'bottom-start', offset: 8 }"
+            :ui="{ content: 'w-44' }"
         >
-          <UButton label="Menu" icon="i-lucide-menu" color="neutral" variant="outline"/>
+
+          <template #default>
+            <button
+                class="dropdown-toggle items-center"
+                type="button"
+            >
+              <span
+                  class="size-9 inline-flex items-center text-center justify-center text-base font-semibold tracking-wide border align-middle transition duration-500 ease-in-out rounded-full bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700 text-white">
+                <img src="../../assets/images/team/01.jpg" class="rounded-full" alt="">
+              </span>
+            </button>
+          </template>
         </UDropdownMenu>
       </div>
 
@@ -136,7 +135,7 @@ const dropdownItems = [
         <ul class="my-4 space-y-3">
           <li>
             <button
-                @click="loginWith('ii')"
+                @click="isOpen = false; loginWith('ii')"
                 class="flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full"
             >
               <span class="flex-1 ms-3 whitespace-nowrap text-left">Internet Identity</span>
@@ -144,8 +143,9 @@ const dropdownItems = [
           </li>
           <li>
             <button
-                @click="loginWith('nfid')"
-                class="flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full"
+                @click="isOpen = false; loginWith('nfid')"
+                disabled
+                class=" flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white w-full"
             >
               <span class="flex-1 ms-3 whitespace-nowrap text-left">NFID</span>
             </button>
