@@ -22,7 +22,7 @@ export function useAuth() {
                 await session.signIn();
 
                 // redirect to verify if not register
-                if (!session.user && !session.user?.verified) await router.push('/account/register');
+                if (!session.user || !session.user?.verified) await router.push('/account/register');
 
 
 

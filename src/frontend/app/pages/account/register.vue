@@ -10,7 +10,7 @@ definePageMeta({
 const session = useSessionStore()
 const router = useRouter()
 // Estado de registro
-const isRegister = ref(session.user)
+const isRegister = ref(session.user != null)
 
 // Estado del stepper (0 = registro, 1 = verificación)
 const currentStep = ref(0)
@@ -35,8 +35,8 @@ function nextStep() {
 async function handleRegister() {
   try {
     isRegistering.value = true
-    await session.backend.signUp({ name: registerForm.value.name })
-    isRegister.value = true
+    
+    isRegister.value = "Ok" in await session.backend.signUp({ name: registerForm.value.name })
     nextStep()
   } catch (e) {
     console.error('Registration error', e)
