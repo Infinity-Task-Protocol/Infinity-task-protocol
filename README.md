@@ -126,8 +126,13 @@ This consists of a call from the frontend to the Treasury canister to bring the 
 + Generic or platform notifications ➜ Users.
 
 
+---
+
+
+#### ︵‿︵‿︵‿︵ [**Roadmap**](./roadmap.md)
 
 ---
+
 ## 🌐 Live Dapp
 
 > ✅ **[Launch App on ICP Mainnet](https://grkfk-5iaaa-aaaak-quh7a-cai.icp0.io/)**  

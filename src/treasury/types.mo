@@ -20,7 +20,7 @@ module {
         decimals: Nat;
         canisterId: Principal
     };
-    
+
     public func icpToken(): Token {
         {
             name: Text = "Internet Computer";
@@ -51,6 +51,7 @@ module {
         #AddAdmin: Principal ;
         #RemoveAdmin: Principal;
         #Other: Text;
+        #Withdraw: Nat;
     };
 
     // public type Balance = (Account, Nat);

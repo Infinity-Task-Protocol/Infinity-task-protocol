@@ -49,7 +49,6 @@ dfx canister call backend setTreasuryCanisterId "(principal \"$(dfx canister id 
 ```
 
 
-
 Build and deploy frontend canister
 
 ```sh
