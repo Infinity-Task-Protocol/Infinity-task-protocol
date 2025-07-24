@@ -1,4 +1,9 @@
 #### [◄ Back](./README.md)
+
+
+<img width="1308" height="716" alt="image" src="https://github.com/user-attachments/assets/be81354c-19c0-4aba-afb3-fa88243f8ec3" />
+
+
 ### Stage 0: Previous State
 
 **Main Modules:**  
