@@ -1,8 +1,8 @@
 
 <script setup>
 
-import image from '@/assets/images/team/01.jpg'
-import bg from '@/assets/images/hero/bg5.jpg'
+// import image from '@/assets/images/team/01.jpg'
+// import bg from '@/assets/images/hero/bg5.jpg'
 import logo1 from '@/assets/images/company/shree-logo.png'
 import logo2 from '@/assets/images/company/circle-logo.png'
 import CandidateProfile from "~/components/candidates/candidate-profile.vue";
@@ -13,6 +13,14 @@ definePageMeta({
   ],
 });
 
+const session = useSessionStore()
+const user = session.user
+
+const blobToImage = (blob) => {
+  return "image/png;base64," + btoa(
+    String.fromCharCode(...new Uint8Array(blob))
+  );
+}
 
 </script>
 
@@ -20,17 +28,17 @@ definePageMeta({
   <section class="relative lg:mt-24 mt-[74px]">
     <div class="container">
       <div class="relative shrink-0">
-        <img :src="bg" class="h-64 w-full object-cover lg:rounded-xl shadow-sm shadow-gray-200 dark:shadow-gray-700" alt="">
+        <img :src="user?.coverPhoto ? blobToImage(user?.coverPhoto) : ' '" class="h-64 w-full object-cover lg:rounded-xl shadow-sm shadow-gray-200 dark:shadow-gray-700" alt="">
       </div>
 
       <div class="md:flex mx-4 -mt-12">
         <div class="md:w-full">
           <div class="relative flex items-end justify-between">
             <div class="relative flex items-end">
-              <img :src="data?.image ? data?.image : image" class="size-28 rounded-full shadow-sm dark:shadow-gray-800 ring-4 ring-slate-50 dark:ring-slate-800" alt="">
+              <img :src="user?.avatar ? blobToImage(user?.avatar) : image" class="size-28 rounded-full shadow-sm dark:shadow-gray-800 ring-4 ring-slate-50 dark:ring-slate-800" alt="">
               <div class="ms-4">
-                <h5 class="text-lg font-semibold">{{ data?.name ? data?.name : 'Mr. Calvin carlo' }}</h5>
-                <p class="text-slate-400">{{ data?.position ? data?.position : 'Web Designer' }}</p>
+                <h5 class="text-lg font-semibold">{{user?.name}}</h5>
+                <p class="text-slate-400">{{user?.position }}</p>
               </div>
             </div>
 
@@ -47,9 +55,13 @@ definePageMeta({
     <div class="container">
       <div class="grid md:grid-cols-12 grid-cols-1 gap-[30px]">
         <div class="lg:col-span-8 md:col-span-7">
-          <h5 class="text-xl font-semibold">{{ data?.name ? data?.name : 'Mr. Calvin carlo' }}</h5>
-          <p class="text-slate-400 mt-4">Obviously I'M Web Developer. Web Developer with over 3 years of experience. Experienced with all stages of the development cycle for dynamic web projects. The as opposed to using 'Content here, content here', making it look like readable English.</p>
-          <p class="text-slate-400 mt-4">Data Structures and Algorithms are the heart of programming. Initially most of the developers do not realize its importance but when you will start your career in software development, you will find your code is either taking too much time or taking too much space.</p>
+          <h5 class="text-xl font-semibold">{{ user?.name ? user?.name : 'Mr. Calvin carlo' }}</h5>
+
+          <div class="text-slate-400 mt-4">
+            <p v-for="(paragraph, index) in user?.bio?.split('\n')" :key="index" class="mb-2">
+              {{ paragraph }}
+            </p>
+          </div>
 
           <h4 class="mt-6 text-xl font-semibold">Skills :</h4>
           <div class="grid lg:grid-cols-2 grid-cols-1 mt-6 gap-6">
@@ -114,7 +126,7 @@ definePageMeta({
             </div>
           </div>
 
-          <h4 class="mt-6 text-xl font-semibold">Experience :</h4>
+          <!-- <h4 class="mt-6 text-xl font-semibold">Experience :</h4>
 
           <div class="flex mt-6">
             <div class="text-slate-400 font-semibold min-w-[80px] text-center">
@@ -138,9 +150,9 @@ definePageMeta({
               <span class="text-slate-400 company-university">CircleCI - U.S.A.</span>
               <p class="text-slate-400 mt-2 mb-0">It seems that only fragments of the original text remain in the Lorem Ipsum texts used today. One may speculate that over the course of time certain letters were added or deleted at various positions within the text. </p>
             </div>
-          </div>
+          </div> -->
 
-          <div class="rounded-md shadow-sm shadow-gray-200 dark:shadow-gray-700 p-6 mt-6">
+          <!-- <div class="rounded-md shadow-sm shadow-gray-200 dark:shadow-gray-700 p-6 mt-6">
             <h5 class="text-xl font-semibold">Contact Me:</h5>
 
             <form>
@@ -167,9 +179,9 @@ definePageMeta({
               </div>
               <button type="submit" id="submit" name="send" class="py-1 px-5 inline-block font-semibold tracking-wide border align-middle transition duration-500 ease-in-out text-base text-center bg-emerald-600 hover:bg-emerald-700 text-white rounded-md">Send Message</button>
             </form>
-          </div>
+          </div> -->
         </div>
-        <CandidateProfile />
+        <!-- <CandidateProfile /> -->
       </div>
     </div>
   </section>

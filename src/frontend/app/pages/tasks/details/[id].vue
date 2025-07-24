@@ -5,8 +5,9 @@ const { id } = useRoute().params
 const taskData = await session.backend.expandTask(BigInt(id))
 import logo5 from '@/assets/images/company/spotify.png'
 
-
+console.log(taskData)
 const isAuthor = (taskData[0].author.principal.toString() === session.identity.getPrincipal().toText() )
+// const token = taskData.task.token
 
 
 const datas = ['Participate in requirements analysis', 'Write clean, scalable code using C# and .NET frameworks', 'Test and deploy applications and systems', 'Revise, update, refactor and debug code', 'Improve existing software', 'Develop documentation throughout the software development life cycle (SDLC', 'Serve as an expert on applications and provide technical support']
@@ -16,16 +17,17 @@ const isBidModalOpen = ref(false)
 const bidAmount = ref('')
 
 // Función para manejar el bid
-const handleMakeBid = () => {
-  const amount = parseFloat(bidAmount.value)
+const handleMakeBid = async () => {
+  const decimals = 6 // TODO: Tomar el valor de decimales de la moneda seleccionada 
+  const amount = BigInt(parseFloat(bidAmount.value) * 10 ** decimals )
 
   if (!amount || amount <= 0) {
     console.error('Please enter a valid bid amount')
     return
   }
-
-  console.log('Bid submitted:', amount)
-
+  const placeBidResponse = await session.backend.applyForTask({taskId:BigInt(id), amount})
+  console.log('Bid placed:', placeBidResponse)
+  
   isBidModalOpen.value = false
   bidAmount.value = ''
 
@@ -128,7 +130,7 @@ const openBidModal = () => {
 
 
 
-          <div class="mt-5" v-if="!isAuthor">
+          <div class="mt-5" v-if="session.user && !isAuthor">
             <button
                 @click="openBidModal"
                 class="py-1 px-5 inline-block font-semibold tracking-wide border align-middle transition duration-500 ease-in-out text-base text-center rounded-md bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700 text-white md:ms-2 w-full md:w-auto"

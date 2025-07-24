@@ -24,8 +24,6 @@ export function useAuth() {
                 // redirect to verify if not register
                 if (!session.user || !session.user?.verified) await router.push('/account/register');
 
-
-
             },
             onError: (err) => console.error('Login error', err)
         });

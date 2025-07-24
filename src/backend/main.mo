@@ -189,14 +189,19 @@ shared ({caller = DEPLOYER}) actor class() {
       case null { return #Err("User not found") };
       case (?user) { user };
     };
-    let { name; email; avatar } = data;
+    let { name; email; avatar; position; skills; bio; socialLinks; coverImage } = data;
     let verified = (user.email == email) and (email != null); // En caso de que el usuario modifique su email tendrá que verificarlo nuevamente
     let updatedUser = {
       user with
       verified;
       name = switch (name) { case null user.name; case (?n) n };
-      email = switch (email) { case null user.email; case e e };
-      avatar = switch (avatar) { case null user.avatar; case a a };
+      email = switch (email) { case null user.email; case (e) e };
+      avatar = switch (avatar) { case null user.avatar; case (a) a };
+      position = switch (position) { case null user.position; case (p) p };
+      bio = switch (bio) { case null user.bio; case (b) b };
+      coverImage;
+      socialLinks;
+      skills; 
     };
     ignore Map.put<Principal, User>(users, phash, caller, updatedUser);
     #Ok(updatedUser);
@@ -394,6 +399,7 @@ shared ({caller = DEPLOYER}) actor class() {
     if (amount < task.rewardRange.0 and task.rewardRange.1 < amount ){
       return #Err("Amount offer is out of range");
     };
+    print("Applying for task: " # Nat.toText(taskId) # " with amount: " # Nat.toText(amount));
     ignore Map.put<Principal, Types.Offer>(task.bids, phash, caller, {date = now(); amount });
     ////// Task Owner Push Notification ///////
     pushNotification(
@@ -604,19 +610,19 @@ shared ({caller = DEPLOYER}) actor class() {
     };
   };
 
-  public shared ({ caller }) func acceptDelivery(args: Types.AcceptedDeliveryArgs): async Bool {
+  public shared ({ caller }) func acceptDelivery(args: Types.AcceptedDeliveryArgs): async {#Ok; #Err: Text} {
     let {deliveryId; qualification; review } = args;
     let delivery = Map.get<Nat, Types.DeliveryTask>(deliveries, nhash, deliveryId);
     switch delivery {
-      case null { return false };
+      case null { return #Err("Delivery not found") };
       case ( ?delivery ) {
         switch (Map.get<Nat, Task>(activeTasks, nhash, delivery.taskId)){
-          case null { return false };
+          case null { return #Err("Task not found") };
           case (?task){
             switch (task.status) {
               case (#Delivered(_)) { 
                 if (task.owner != caller) {
-                  return false;
+                  return #Err("Caller is not the task owner");
                 };
                 ignore Map.put<Nat, Task>(activeTasks, nhash, task.id, { 
                   task with status = #ReleasingPayment;
@@ -636,14 +642,14 @@ shared ({caller = DEPLOYER}) actor class() {
                   ignore Map.put<Nat, Task>(archivedTasks, nhash, task.id, {task with status = #Done(now())})
                 }
               };
-              case (_) { return false}
+              case (_) { return #Err("Task is not delivered") }
             };
           }
         };
         
       }
     };
-    true
+    #Ok
   };
 
   ///////////// private functions ///////////////

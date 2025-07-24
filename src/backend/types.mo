@@ -1,5 +1,6 @@
 import Principal "mo:base/Principal";
 import Map "mo:map/Map";
+import TreasuryTypes "../treasury/types";
 module {
 
     type Account = { owner : Principal; subaccount : ?Blob };
@@ -8,17 +9,27 @@ module {
         principal : Principal;
         name : Text;
         avatar : ?Blob;
+        coverImage: ?Blob;
+        bio: ?Text;
         email : ?Text;
+        socialLinks : [Text];
         verified : Bool;
         score : Nat;
         walletAccount : ?Account;
         tasks : [Nat];
+        position: ?Text;
+        skills: [Text];
     };
 
     public type UserUpdatableData = {
         name : ?Text;
         avatar : ?Blob;
+        coverImage: ?Blob;
         email : ?Text;
+        socialLinks : [Text];
+        position: ?Text;
+        bio: ?Text;
+        skills: [Text];
     };
 
     public func DefaultUser() : User {
@@ -26,11 +37,16 @@ module {
             principal = Principal.fromText("2vxsx-fae");
             name = "";
             avatar = null;
+            coverImage = null;
             email = null;
             verified = false;
             score = 0;
             walletAccount = null;
             tasks = [];
+            position = null;
+            bio = null;
+            skills = [];
+            socialLinks = [];
         };
     };
 
@@ -103,7 +119,7 @@ module {
         description : Text;
         keywords : [Text];
         rewardRange : (Nat, Nat);
-        token: Text;  // selector en el front con los tokens soportados getTokensSupported() -> [Text]
+        token: TreasuryTypes.Token;  // selector en el front con los tokens soportados getTokensSupported() -> [Token]
         assets : [Asset];
     };
 
@@ -130,6 +146,7 @@ module {
         description : Text;
         keywords : [Text];
         rewardRange : (Nat, Nat);
+        token: TreasuryTypes.Token;
         createdAt : Int;
         bidsCounter : Nat;
     };
@@ -182,7 +199,7 @@ module {
             memoTransaction = null;
             keywords = [];
             rewardRange = (0, 0);
-            token = "ICP";
+            token = TreasuryTypes.icpToken();
             start = null;
             status = #ToDo(0);
             title = "";

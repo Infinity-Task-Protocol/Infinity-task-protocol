@@ -13,6 +13,9 @@ const session = useSessionStore()
 
 //Todo Add getAcceptedToken function from Treasury canister
 
+const tokens = await session.treasury.getSupportedTokens()
+console.log(tokens[0])
+
 //const acceptedTokens = session.treasury.getSupportedToken()
 
 const form = ref({
@@ -31,6 +34,8 @@ function handleFiles(e: Event) {
   }
 }
 const admins = await session.treasury.getSupportedTokens()
+const tokenSelected = ref(0)
+
 console.log(admins)
 async function handleSubmit() {
   
@@ -44,18 +49,22 @@ async function handleSubmit() {
       })
   )
 
+  const selectedToken = tokens[tokenSelected.value]
+  
   const payload = {
     title: form.value.title,
     description: form.value.description,
     keywords: form.value.keywords,
-    token:"ICP",
-    rewardRange: [BigInt(form.value.minReward), BigInt(form.value.maxReward)] as [bigint, bigint],
+    token: selectedToken,
+    rewardRange: [
+      BigInt(form.value.minReward * 10 ** Number(selectedToken.decimals)) , 
+      BigInt(form.value.maxReward * 10 ** Number(selectedToken.decimals))
+    ],
     assets: []
   }
-  console.log(payload)
-  await session.backend.createTask(payload).then(() => {
-    console.log("tarea creada")
-  })
+
+  const response = await session.backend.createTask(payload)
+  console.log('Task created:', response)
 
 }
 </script>
@@ -85,14 +94,20 @@ async function handleSubmit() {
                   <UInputTags v-model="form.keywords" placeholder="Add keyword" class="form-input mt-1 border border-slate-100 dark:border-slate-800 w-full rounded-md"/>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4 align-items-center">
                   <div>
                     <label class="font-semibold">Min Reward:</label>
-                    <input v-model.number="form.minReward" type="number" class="form-input mt-1 border" placeholder="Minimum" />
+                    <input v-model.number="form.minReward" type="number" step="any" class="form-input mt-1 border" placeholder="Minimum" />
                   </div>
                   <div>
                     <label class="font-semibold">Max Reward:</label>
-                    <input v-model.number="form.maxReward" type="number" class="form-input mt-1 border" placeholder="Maximum" />
+                    <input v-model.number="form.maxReward" type="number" step="any" class="form-input mt-1 border" placeholder="Maximum" />
+                  </div>
+                  <div>
+                    <label class="font-semibold">Choose an asset:</label>
+                    <select name="token" id="tokenSelector" class="form-input mt-1 border">
+                      <option v-for="token in tokens" :key="token.id" :value="token.id">{{ token.symbol }}</option>
+                    </select>
                   </div>
                 </div>
 
