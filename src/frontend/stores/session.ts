@@ -49,8 +49,9 @@ export const useSessionStore = defineStore('session', () => {
 
             await setIdentity(newIdentity)
             isAuthenticated.value = !newIdentity.getPrincipal().isAnonymous()
-
+            console.log(isAuthenticated.value)
             if (isAuthenticated.value) {
+                console.log("autenticando")
                 await signIn()
             }
         } catch (error) {
