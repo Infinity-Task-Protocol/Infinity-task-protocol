@@ -65,12 +65,12 @@ async function handleVerification() {
   try {
     isVerifying.value = true
     res = await session.backend.enterCodeVerification(BigInt(verificationForm.value.code))
+    if (res) {
+
+      window.location.href = '/'
+    }
   } catch (e) {
     console.error("Verification error", e)
-  } finally {
-    isVerifying.value = false
-    console.log("finally",res)
-    if (res) await router.push('/')
   }
 }
 
