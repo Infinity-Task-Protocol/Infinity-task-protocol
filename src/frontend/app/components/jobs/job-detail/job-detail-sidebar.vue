@@ -13,8 +13,12 @@
             'blur-none pointer-events-auto': !hideBids
           }"
         >
+          <!-- Sin bids -->
+          <div v-if="displayBids.length === 0" class="text-center text-gray-500 dark:text-gray-400 py-6">
+            No bids yet. 🕊️
+          </div>
           <div
-              v-for="bid in bids"
+              v-for="bid in displayBids"
               :key="bid.id"
               class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm"
           >
@@ -31,7 +35,7 @@
                 {{ bid.name }}
               </p>
               <p class="text-sm text-gray-500 dark:text-gray-400">
-                {{ bid.amount }} USDT
+                {{ bid.amount }} ICP
               </p>
             </div>
 
@@ -79,7 +83,7 @@
                 {{ selectedBid.name }}
               </h6>
               <p class="text-lg font-bold text-emerald-600">
-                {{ selectedBid.amount }} USDT
+                {{ selectedBid.amount }} ICP
               </p>
             </div>
           </div>
@@ -137,24 +141,28 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import logo1 from '@/assets/images/company/facebook-logo.png'
-import logo2 from '@/assets/images/company/google-logo.png'
-import logo3 from '@/assets/images/company/android.png'
-import logo4 from '@/assets/images/company/lenovo-logo.png'
-import logo5 from '@/assets/images/company/spotify.png'
-import logo6 from '@/assets/images/company/linkedin.png'
-import logo7 from '@/assets/images/company/circle-logo.png'
-import logo8 from '@/assets/images/company/skype.png'
-import logo9 from '@/assets/images/company/snapchat.png'
-import logo10 from '@/assets/images/company/shree-logo.png'
-import logo11 from '@/assets/images/company/telegram.png'
-import logo12 from '@/assets/images/company/whatsapp.png'
+import { Principal } from '@dfinity/principal'
 
-const route = useRoute()
+const session = useSessionStore()
+
+// Estados del modal
+const isAcceptModalOpen = ref(false)
+const selectedBid = ref(null)
+
+const id = ref('')
+const data = ref(null)
+
 
 // Props del componente
 const props = defineProps({
+  task: {
+    type: Array,
+    default: () => []
+  },
+  bids: {
+    type: Array,
+    default: () => []
+  },
   hideBids: {
     type: Boolean,
     default: true
@@ -180,21 +188,18 @@ const blurClass = computed(() => {
   return `blur-${props.blurIntensity}`
 })
 
-// Estados del modal
-const isAcceptModalOpen = ref(false)
-const selectedBid = ref(null)
 
-const id = ref('')
-const data = ref(null)
+const displayBids = computed(() => {
+  return props.bids.map(([principal, offer], index) => {
+    return {
+      id: principal.toText(),
+      image: 'https://api.dicebear.com/7.x/identicon/svg?seed=' + principal.toText(),
+      name: principal.toText().slice(0, 10) + '...',
+      amount: Number(offer.amount) / 1000000
+    }
+  })
+})
 
-const bids = ref([
-  { id: 1, image: logo6, name: 'John Doe', amount: 150 },
-  { id: 2, image: logo7, name: 'Jane Smith', amount: 200 },
-  { id: 3, image: logo8, name: 'Carlos Pérez', amount: 175 },
-  { id: 4, image: logo6, name: 'Luis Gómez', amount: 180 },
-  { id: 5, image: logo7, name: 'Ana López', amount: 220 },
-  { id: 6, image: logo8, name: 'Zoe Rivera', amount: 250 },
-])
 
 // Función para abrir el modal de aceptar
 const openAcceptModal = (bid) => {
@@ -210,163 +215,20 @@ const handleAcceptBid = async () => {
   try {
     console.log('Accepting bid:', selectedBid.value)
 
-    // Aquí llamarías a tu API
-    // await session.backend.acceptBid(selectedBid.value.id, route.params.id)
+    const taskId = BigInt(props.task[0]?.task?.id)
+    const bidderPrincipal = Principal.fromText(selectedBid.value.id)
 
-    // Remover el bid aceptado y todos los demás (simulando rechazo automático)
-    const acceptedBid = selectedBid.value
-    bids.value = bids.value.filter(bid => bid.id === acceptedBid.id)
+    await session.backend.acceptOffer(taskId, bidderPrincipal)
 
-    // Cerrar modal
     isAcceptModalOpen.value = false
     selectedBid.value = null
 
-    // Mostrar mensaje de éxito
     console.log('Bid accepted successfully!')
-
-    // Aquí podrías mostrar un toast de éxito
-    // toast.add({ title: 'Bid accepted successfully!', color: 'success' })
-
   } catch (error) {
     console.error('Error accepting bid:', error)
-    // Mostrar mensaje de error
-    // toast.add({ title: 'Error accepting bid', color: 'error' })
   }
 }
 
-const datas = [
-  {
-    id: 1,
-    image: logo1,
-    name: 'Facebook',
-    day: '2 days ago',
-    type: 'Full Time',
-    job: 'Web Designer / Developer',
-    country: 'Australia',
-    vacancy: '21 applied',
-    vacancy2: 'of 40 vacancy'
-  },
-  {
-    id: 2,
-    image: logo2,
-    name: 'Google',
-    day: '2 days ago',
-    type: 'Part Time',
-    job: 'Marketing Director',
-    country: 'USA',
-    vacancy: '21 applied',
-    vacancy2: 'of 40 vacancy'
-  },
-  {
-    id: 3,
-    image: logo3,
-    name: 'Android',
-    day: '2 days ago',
-    type: 'Remote',
-    job: 'Application Developer',
-    country: 'China',
-    vacancy: '21 applied',
-    vacancy2: 'of 40 vacancy'
-  },
-  {
-    id: 4,
-    image: logo4,
-    name: 'Lenovo',
-    day: '2 days ago',
-    type: 'WFH',
-    job: 'Senior Product Designer',
-    country: 'Dubai',
-    vacancy: '21 applied',
-    vacancy2: 'of 40 vacancy'
-  },
-  {
-    id: 5,
-    image: logo5,
-    name: 'Spotify',
-    day: '2 days ago',
-    type: 'Full Time',
-    job: 'C++ Developer',
-    country: 'India',
-    vacancy: '21 applied',
-    vacancy2: 'of 40 vacancy'
-  },
-  {
-    id: 6,
-    image: logo6,
-    name: 'Linkedin',
-    day: '2 days ago',
-    type: 'Remote',
-    job: 'Php Developer',
-    country: 'Pakistan',
-    vacancy: '21 applied',
-    vacancy2: 'of 40 vacancy'
-  },
-  {
-    id: 7,
-    image: logo7,
-    name: 'Circle CI',
-    job: 'Web Designer / Developer',
-    title: 'Looking for an experienced Web Designer for an our company.',
-    type: 'Full Time',
-    salary: '$4,000 - $4,500',
-    location: 'Australia'
-  },
-  {
-    id: 8,
-    image: logo8,
-    name: 'Skype',
-    job: 'Marketing Director',
-    title: 'Looking for an experienced Web Designer for an our company.',
-    type: 'Full Time',
-    salary: '$4,000 - $4,500',
-    location: 'Australia'
-  },
-  {
-    id: 9,
-    image: logo9,
-    name: 'Snapchat',
-    job: 'Application Developer',
-    title: 'Looking for an experienced Web Designer for an our company.',
-    type: 'Full Time',
-    salary: '$4,000 - $4,500',
-    location: 'Australia'
-  },
-  {
-    id: 10,
-    image: logo10,
-    name: 'Shreethemes',
-    job: 'Senior Product Designer',
-    title: 'Looking for an experienced Web Designer for an our company.',
-    type: 'Full Time',
-    salary: '$4,000 - $4,500',
-    location: 'Australia'
-  },
-  {
-    id: 11,
-    image: logo11,
-    name: 'Telegram',
-    job: 'C++ Developer',
-    title: 'Looking for an experienced Web Designer for an our company.',
-    type: 'Full Time',
-    salary: '$4,000 - $4,500',
-    location: 'Australia'
-  },
-  {
-    id: 12,
-    image: logo12,
-    name: 'Whatsapp',
-    job: 'Php Developer',
-    title: 'Looking for an experienced Web Designer for an our company.',
-    type: 'Full Time',
-    salary: '$4,000 - $4,500',
-    location: 'Australia'
-  }
-]
-
-onMounted(() => {
-  id.value = route.params.id
-  data.value = datas.find(item => item.id === parseInt(id.value))
-})
 </script>
 
 <style lang="scss" scoped></style>

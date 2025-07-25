@@ -57,9 +57,10 @@ const blobToImage = (blob) => {
         <div class="lg:col-span-8 md:col-span-7">
           <h5 class="text-xl font-semibold">{{ user?.name ? user?.name : 'Mr. Calvin carlo' }}</h5>
 
+
           <div class="text-slate-400 mt-4">
-            <p v-for="(paragraph, index) in user?.bio?.split('\n')" :key="index" class="mb-2">
-              {{ paragraph }}
+            <p class="mb-2">
+              {{ user?.bio }}
             </p>
           </div>
 

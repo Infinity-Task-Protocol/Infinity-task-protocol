@@ -1,20 +1,26 @@
 <script setup>
-
+import logo5 from '@/assets/images/company/spotify.png'
 const session = useSessionStore()
 const { id } = useRoute().params
-const taskData = await session.backend.expandTask(BigInt(id))
-import logo5 from '@/assets/images/company/spotify.png'
-
-console.log(taskData)
-const isAuthor = (taskData[0].author.principal.toString() === session.identity.getPrincipal().toText() )
-// const token = taskData.task.token
-
-
-const datas = ['Participate in requirements analysis', 'Write clean, scalable code using C# and .NET frameworks', 'Test and deploy applications and systems', 'Revise, update, refactor and debug code', 'Improve existing software', 'Develop documentation throughout the software development life cycle (SDLC', 'Serve as an expert on applications and provide technical support']
+const taskData = ref([])
+const bidsData = ref()
+const isAuthor = ref(false)
 
 // Estado del modal
 const isBidModalOpen = ref(false)
 const bidAmount = ref('')
+
+const datas = ['Participate in requirements analysis', 'Write clean, scalable code using C# and .NET frameworks', 'Test and deploy applications and systems', 'Revise, update, refactor and debug code', 'Improve existing software', 'Develop documentation throughout the software development life cycle (SDLC', 'Serve as an expert on applications and provide technical support']
+
+
+const fetchBids = async () => {
+  const bidsResult = await session.backend.getBids(BigInt(id))
+  if ("Ok" in bidsResult) {
+    bidsData.value = bidsResult.Ok
+  } else {
+    console.warn("Failed to fetch bids", bidsResult)
+  }
+}
 
 // Función para manejar el bid
 const handleMakeBid = async () => {
@@ -32,11 +38,22 @@ const handleMakeBid = async () => {
   bidAmount.value = ''
 
   console.log('Bid submitted successfully!')
+  await fetchBids()
 }
 
 const openBidModal = () => {
   isBidModalOpen.value = true
 }
+
+onMounted(async () => {
+
+  await fetchBids()
+  taskData.value = await session.backend.expandTask(BigInt(id))
+  isAuthor.value = (taskData.value[0].author.principal.toString() === session.identity.getPrincipal().toText() )
+
+  console.log(taskData.value)
+
+})
 </script>
 
 <template>
@@ -141,7 +158,7 @@ const openBidModal = () => {
         </div>
 
         <div class="lg:col-span-4 md:col-span-6">
-          <JobsJobDetailSidebar :hide-bids="!isAuthor"/>
+          <JobsJobDetailSidebar :hide-bids="!isAuthor" :bids="bidsData" :task="taskData"/>
         </div>
       </div>
     </div>
