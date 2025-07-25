@@ -92,6 +92,11 @@ module {
         #Err : Text;
     };
 
+    public type BidsResult = {
+      #Ok: [(Principal, Offer)];
+      #unauthorized;
+    };
+
     public type Asset = {
         mimeType : Text;
         data : Blob;

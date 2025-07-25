@@ -21,6 +21,7 @@ shared ({caller = DEPLOYER}) actor class() {
   type User = Types.User;
   type UserUpdatableData = Types.UserUpdatableData;
   type LoginResult = Types.LoginResult;
+  type BidsResult = Types.BidsResult;
   type TaskDataInit = Types.TaskDataInit;
   type Task = Types.Task;
   type TaskPreview = Types.TaskPreview;
@@ -414,13 +415,15 @@ shared ({caller = DEPLOYER}) actor class() {
     #Ok;
   };
 
-  public shared query ({ caller }) func getBids(taskId: Nat): async [(Principal, Types.Offer)]{
+  public shared query ({ caller }) func getBids(taskId: Nat): async BidsResult {
     switch (Map.get<Nat, Task>(activeTasks, nhash, taskId)) {
-      case null { return [] };
-      case ( ?task ) {
-        assert(caller == task.owner);
-        Map.toArray<Principal, Types.Offer>(task.bids)
-      }
+      case null {
+        return return #Ok([]);
+      };
+      case (?task) {
+        if (caller != task.owner) return #unauthorized;
+        return #Ok(Map.toArray<Principal, Types.Offer>(task.bids));
+      };
     }
   };
 
