@@ -125,6 +125,28 @@ This consists of a call from the frontend to the Treasury canister to bring the 
 + Submission accepted and balance update. ➜ Freelancer
 + Generic or platform notifications ➜ Users.
 
+---
+
+### Current status
+
+* Homepage
+![alt text](image.png)
+
+* Login
+![alt text](image-1.png)
+
+* Register
+![alt text](image-2.png)
+
+* Verification. Provisional console.log
+![alt text](image-3.png)
+![alt text](image-4.png)
+
+* User verificated view
+![alt text](image-6.png)
+
+* Create Task Form
+![alt text](image-7.png)
 
 ---
 
