@@ -1,83 +1,91 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+  import { ref, onMounted } from 'vue'
 
-definePageMeta({
-  middleware: [
-    'auth',
-  ],
-});
+  definePageMeta({
+    middleware: [
+      'auth',
+    ],
+  });
 
-const session = useSessionStore()
-const router = useRouter()
-// Estado de registro
-const isRegister = ref(session.user != null)
+  const session = useSessionStore()
+  const router = useRouter()
+  // Estado de registro
+  const isRegister = ref(session.user != null)
 
-// Estado del stepper (0 = registro, 1 = verificación)
-const currentStep = ref(0)
+  // Estado del stepper (0 = registro, 1 = verificación)
+  const currentStep = ref(0)
 
-// Formularios
-const registerForm = ref({ name: '' })
-const verificationForm = ref({ code: '' })
+  // Formularios
+  const registerForm = ref({ name: '' })
+  const verificationForm = ref({ code: '' })
 
-// Estado de carga
-const isRegistering = ref(false)
-const isVerifying = ref(false)
-const isGettingCode = ref(false)
+  // Estado de carga
+  const isRegistering = ref(false)
+  const isVerifying = ref(false)
+  const isGettingCode = ref(false)
 
-function nextStep() {
-  if (currentStep.value < 1) currentStep.value++
-}
-// function prevStep() {
-//   if (currentStep.value > 0) currentStep.value--
-// }
-
-// Manejo de registro
-async function handleRegister() {
-  try {
-    isRegistering.value = true
-    
-    isRegister.value = "Ok" in await session.backend.signUp({ name: registerForm.value.name })
-    nextStep()
-  } catch (e) {
-    console.error('Registration error', e)
-  } finally {
-    isRegistering.value = false
+  function nextStep() {
+    if (currentStep.value < 1) currentStep.value++
   }
-}
+  // function prevStep() {
+  //   if (currentStep.value > 0) currentStep.value--
+  // }
 
-// Obtener código
-async function getVerificationCode() {
-  try {
-    isGettingCode.value = true
-    const code = await session.backend.getVerificationCode()
-    console.log(code)
-  } catch (e) {
-    console.error('Error getting code', e)
-  } finally {
-    isGettingCode.value = false
-
-  }
-}
-
-// Manejo de verificación
-async function handleVerification() {
-  let res = false
-  try {
-    isVerifying.value = true
-    res = await session.backend.enterCodeVerification(BigInt(verificationForm.value.code))
-    if (res) {
-
-      window.location.href = '/'
+  // Manejo de registro
+  async function handleRegister() {
+    try {
+      isRegistering.value = true
+      const signUpResult = await session.backend.signUp({ name: registerForm.value.name })
+      if ("Ok" in signUpResult) {
+        isRegister.value
+        session.user = signUpResult.Ok
+      }
+      nextStep()
+    } catch (e) {
+      console.error('Registration error', e)
+    } finally {
+      isRegistering.value = false
     }
-  } catch (e) {
-    console.error("Verification error", e)
   }
-}
 
-// Saltar registro si ya está registrado
-onMounted(() => {
-  if (isRegister.value) currentStep.value = 1
-})
+  // Obtener código
+  async function getVerificationCode() {
+    try {
+      isGettingCode.value = true
+      const code = await session.backend.getVerificationCode()
+      console.log(code)
+    } catch (e) {
+      console.error('Error getting code', e)
+    } finally {
+      isGettingCode.value = false
+
+    }
+  }
+
+  // Manejo de verificación
+  async function handleVerification() {
+    console.log(session.user)
+    let res = false
+    try {
+      isVerifying.value = true
+      res = await session.backend.enterCodeVerification(BigInt(verificationForm.value.code))
+      if (res) {
+        if (session.user) { // Asegúrate de que session.user no sea null antes de intentar acceder a 'verified'
+          session.user.verified = true; // Marca el usuario como verificado en el store de sesión
+        }
+        router.push('/tasks')
+      }
+    } catch (e) {
+      console.error("Verification error", e)
+    } finally {
+      isVerifying.value = false; 
+    }
+  }
+
+  // Saltar registro si ya está registrado
+  onMounted(() => {
+    if (isRegister.value) currentStep.value = 1
+  })
 </script>
 
 <template>
@@ -102,18 +110,10 @@ onMounted(() => {
               <form @submit.prevent="handleRegister">
                 <h5 class="text-lg font-semibold">Register</h5>
                 <label class="block font-semibold">Name:</label>
-                <input
-                    v-model="registerForm.name"
-                    type="text"
-                    class="w-full border px-3 py-2 rounded-md"
-                    placeholder="Enter your name"
-                    required
-                />
-                <button
-                    type="submit"
-                    :disabled="isRegistering || !registerForm.name.trim()"
-                    class="mt-4 py-2 px-4 text-white bg-emerald-600 hover:bg-emerald-700 rounded-md disabled:opacity-50"
-                >
+                <input v-model="registerForm.name" type="text" class="w-full border px-3 py-2 rounded-md"
+                  placeholder="Enter your name" required />
+                <button type="submit" :disabled="isRegistering || !registerForm.name.trim()"
+                  class="mt-4 py-2 px-4 text-white bg-emerald-600 hover:bg-emerald-700 rounded-md disabled:opacity-50">
                   <span v-if="isRegistering">Registering...</span>
                   <span v-else>Register</span>
                 </button>
@@ -125,28 +125,16 @@ onMounted(() => {
               <form @submit.prevent="handleVerification">
                 <h5 class="text-lg font-semibold">Verify Your Account</h5>
                 <label class="block font-semibold">Verification Code:</label>
-                <input
-                    v-model="verificationForm.code"
-                    type="text"
-                    class="w-full border px-3 py-2 rounded-md"
-                    placeholder="Enter verification code"
-                    required
-                />
+                <input v-model="verificationForm.code" type="text" class="w-full border px-3 py-2 rounded-md"
+                  placeholder="Enter verification code" required />
                 <div class="flex gap-2 mt-4">
-                  <button
-                      type="button"
-                      @click="getVerificationCode"
-                      :disabled="isGettingCode"
-                      class="py-2 px-4 text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
-                  >
+                  <button type="button" @click="getVerificationCode" :disabled="isGettingCode"
+                    class="py-2 px-4 text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50">
                     <span v-if="isGettingCode">Getting Code...</span>
                     <span v-else>Get Verification Code</span>
                   </button>
-                  <button
-                      type="submit"
-                      :disabled="isVerifying || !verificationForm.code.trim()"
-                      class="py-2 px-4 text-white bg-emerald-600 hover:bg-emerald-700 rounded-md disabled:opacity-50"
-                  >
+                  <button type="submit" :disabled="isVerifying || !verificationForm.code.trim()"
+                    class="py-2 px-4 text-white bg-emerald-600 hover:bg-emerald-700 rounded-md disabled:opacity-50">
                     <span v-if="isVerifying">Verifying...</span>
                     <span v-else>Verify Code</span>
                   </button>
