@@ -5,8 +5,10 @@ import { HttpAgent, AnonymousIdentity } from '@dfinity/agent'
 import type { Identity, ActorSubclass } from '@dfinity/agent'
 import type { User, Notification, Msg, _SERVICE } from '../../declarations/backend/backend.did'
 import { createActor } from '../../declarations/backend'
-
+import type { _SERVICE as TREASURY_SERVICE, Token} from '../../declarations/treasury/treasury.did'
+import {createActor as createTreasuryActor } from '../../declarations/treasury'
 const canisterId = import.meta.env.VITE_CANISTER_ID_BACKEND as string
+const treasuryCanisterId = import.meta.env.VITE_CANISTER_ID_TREASURY as string
 const host = import.meta.env.VITE_DFX_NETWORK === 'local'
     ? `http://localhost:4943/?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai`
     : 'https://identity.ic0.app'
@@ -21,11 +23,16 @@ export const useSessionStore = defineStore('session', () => {
     const loading = ref(false)
     const isModalOpen = ref(false)
     const initialized = ref(false)
+    const supportedTokens = ref<Token[]>([])
+    const userBalances = ref<{token: string; balance: bigint}[]>([])
 
     const backend = ref<ActorSubclass<_SERVICE>>(createActor(canisterId, {
         agentOptions: { identity: identity.value, host }
     }))
-    //ToDo Add Treasury canister reference
+    const treasury = ref<ActorSubclass<TREASURY_SERVICE>>(createTreasuryActor(treasuryCanisterId, {
+        agentOptions: { identity: identity.value, host }
+    }))
+
     // 🧠 Getters
     const isLoggedIn = computed(() => isAuthenticated.value && user.value !== null)
     const unreadNotifications = computed(() => notifications.value.filter(n => !n.read))
@@ -42,8 +49,9 @@ export const useSessionStore = defineStore('session', () => {
 
             await setIdentity(newIdentity)
             isAuthenticated.value = !newIdentity.getPrincipal().isAnonymous()
-
+            console.log(isAuthenticated.value)
             if (isAuthenticated.value) {
+                console.log("autenticando")
                 await signIn()
             }
         } catch (error) {
@@ -61,19 +69,21 @@ export const useSessionStore = defineStore('session', () => {
             host
         })
         backend.value = createActor(canisterId, { agent })
+        treasury.value = createTreasuryActor(treasuryCanisterId, {agent})
     }
 
     async function signIn() {
         if (!isAuthenticated.value) return
 
         try {
+            supportedTokens.value = await treasury.value.getSupportedTokens()
             const response = await backend.value.signIn()
-            console.log(response)
             if ('Ok' in response) {
                 user.value = response.Ok.user
                 notifications.value = response.Ok.notifications
                 msgs.value = response.Ok.msgs
-                console.log('User signed in:', response.Ok.user)
+                console.log('User signed in:', user.value?.name)
+                userBalances.value = await treasury.value.getMyBalances()
             }
         } catch (error) {
             console.error('Error signing in:', error)
@@ -97,7 +107,7 @@ export const useSessionStore = defineStore('session', () => {
     return {
         // state
         user, notifications, msgs, identity,
-        isAuthenticated, loading, isModalOpen, initialized, backend,
+        isAuthenticated, loading, isModalOpen, initialized, backend, treasury,
 
         // getters
         isLoggedIn, unreadNotifications, unreadMessagesCount,

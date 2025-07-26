@@ -7,7 +7,7 @@ export function useAuth() {
     async function loginWith(provider: 'ii' | 'nfid') {
         const providerUrl = provider === 'ii'
             ? 'http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943'
-            : 'https://nfid.one/auth';
+            : 'https://nfid.one/authenticate/?applicationName=my-ic-app';
 
         const authClient = await AuthClient.create();
 
@@ -20,6 +20,10 @@ export function useAuth() {
                 await session.setIdentity(newIdentity);
                 session.isAuthenticated = true;
                 await session.signIn();
+
+                // redirect to verify if not register
+                if (!session.user || !session.user?.verified) await router.push('/account/register');
+
             },
             onError: (err) => console.error('Login error', err)
         });

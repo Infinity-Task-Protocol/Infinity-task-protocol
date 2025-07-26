@@ -1,5 +1,6 @@
 import Principal "mo:base/Principal";
 import Map "mo:map/Map";
+import TreasuryTypes "../treasury/types";
 module {
 
     type Account = { owner : Principal; subaccount : ?Blob };
@@ -8,17 +9,27 @@ module {
         principal : Principal;
         name : Text;
         avatar : ?Blob;
+        coverImage: ?Blob;
+        bio: ?Text;
         email : ?Text;
+        socialLinks : [Text];
         verified : Bool;
         score : Nat;
         walletAccount : ?Account;
         tasks : [Nat];
+        position: ?Text;
+        skills: [Text];
     };
 
     public type UserUpdatableData = {
         name : ?Text;
         avatar : ?Blob;
+        coverImage: ?Blob;
         email : ?Text;
+        socialLinks : [Text];
+        position: ?Text;
+        bio: ?Text;
+        skills: [Text];
     };
 
     public func DefaultUser() : User {
@@ -26,19 +37,29 @@ module {
             principal = Principal.fromText("2vxsx-fae");
             name = "";
             avatar = null;
+            coverImage = null;
             email = null;
             verified = false;
             score = 0;
             walletAccount = null;
             tasks = [];
+            position = null;
+            bio = null;
+            skills = [];
+            socialLinks = [];
         };
     };
 
     public type Notification = {
         date : Int;
-        title : Text;
-        content : Text;
         read : Bool;
+        kind: KindNotification;
+    };
+
+    public type KindNotification = {
+        #NewBid: Nat;
+        #TaskDelivered : Nat;
+        #DeliveryAccepted: Nat;
     };
 
     public type Msg = {
@@ -71,11 +92,19 @@ module {
         #Err : Text;
     };
 
+    public type BidsResult = {
+      #Ok: [(Principal, Offer)];
+      #unauthorized;
+    };
+
     public type Asset = {
-        id: Nat;
-        withAccess: [Principal];
         mimeType : Text;
         data : Blob;
+    };
+
+    public type File = Asset and {
+        id: Nat;
+        withAccess: [Principal];
     };
 
     type Timestamp = Int;
@@ -95,8 +124,8 @@ module {
         description : Text;
         keywords : [Text];
         rewardRange : (Nat, Nat);
-        token: Text;  // selector en el front con los tokens soportados getTokensSupported() -> [Text]
-        assets : [{ mimeType : Text; data : Blob }];
+        token: TreasuryTypes.Token;  // selector en el front con los tokens soportados getTokensSupported() -> [Token]
+        assets : [Asset];
     };
 
     public type Offer = {
@@ -122,6 +151,7 @@ module {
         description : Text;
         keywords : [Text];
         rewardRange : (Nat, Nat);
+        token: TreasuryTypes.Token;
         createdAt : Int;
         bidsCounter : Nat;
     };
@@ -133,6 +163,7 @@ module {
         memoTransaction: ?Blob;
         start : ?Int;
         chatId: ?Nat32;
+        deliveries: [Nat];
     };
 
     public type UpdatableDataTask = {
@@ -140,9 +171,20 @@ module {
         description : Text;
         rewardRange : (Nat, Nat);
     };
+
+    public type DeliveryTask = {
+        id: Nat;
+        taskId: Nat;
+        taskOwner: Principal;
+        assets: [Asset];
+        date: Int;
+        description: Text;
+        qualification: ?Nat8;
+        review: ?Text;
+    };
     
     public type AcceptedDeliveryArgs = {
-        taskId: Nat;
+        deliveryId: Nat;
         qualification: Nat8;
         review: Text;
     };
@@ -162,11 +204,12 @@ module {
             memoTransaction = null;
             keywords = [];
             rewardRange = (0, 0);
-            token = "ICP";
+            token = TreasuryTypes.icpToken();
             start = null;
             status = #ToDo(0);
             title = "";
             chatId = null;
+            deliveries = [];
         }
 
     }

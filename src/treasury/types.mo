@@ -1,4 +1,5 @@
 import LedgerTypes "../interfaces/ICP_Token/ledger_icp";
+import Principal "mo:base/Principal";
 
 module {
 
@@ -20,6 +21,17 @@ module {
         canisterId: Principal
     };
 
+    public func icpToken(): Token {
+        {
+            name: Text = "Internet Computer";
+            symbol: Text = "ICP";
+            logo: Text = "";
+            fee: Nat = 10_000;
+            decimals: Nat = 8;
+            canisterId: Principal = Principal.fromText("ryjl3-tyaaa-aaaaa-aaaba-cai")
+        }
+    };
+
     public type MetadataValue = {
         #Int : Int;
         #Nat : Nat;
@@ -38,6 +50,7 @@ module {
     public type Action = {
         #AddAdmin: Principal ;
         #RemoveAdmin: Principal;
+        #Withdraw: Nat;
         #Other: Text;
     };
 

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "deploy": "dfx deploy backend & ../../scripts/prefixer-env.sh",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
@@ -11,6 +12,7 @@
   },
   "dependencies": {
     "@dfinity/auth-client": "^2.4.1",
+    "@dfinity/principal": "^3.1.0",
     "@nuxt/icon": "^1.14.0",
     "@nuxt/image": "^1.10.0",
     "@nuxt/ui": "^3.2.0",

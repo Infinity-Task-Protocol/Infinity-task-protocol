@@ -32,8 +32,7 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
     ];
     stable let escrows = Map.new<Types.EscrowId, Types.Escrow>();
 
-    stable let token_icp_canister_id = Principal.fromText("ryjl3-tyaaa-aaaaa-aaaba-cai");
-    stable let supportedTokens = Map.new<Text, Types.Token>();
+    stable let supportedTokens = Map.make<Text, Types.Token>(thash, "Internet Computer", Types.icpToken());
 
     stable var lastEscrowId = 0;
     stable var lastMemoTransactionId = 0;
@@ -141,19 +140,6 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
         true 
     };
 
-    // public shared ({ caller }) func internalBalances(): async [Types.Balance] {
-    //     assert isAdmin(caller);
-    //     let bufferBalances = Buffer.fromArray<Types.Balance>([]);
-    //     for (subaccount in internalSubaccounts.vals()) {
-    //         let account = {owner = Principal.fromActor(this); subaccount = ?subaccount};
-    //         let balance = await remoteLedger(token_icp_canister_id).icrc1_balance_of(account);
-    //         bufferBalances.add((account, balance))
-    //     };
-    //     Buffer.toArray<Types.Balance>(bufferBalances)  
-    // };
-
-
-
     public shared query ({ caller }) func balancesOf(p: Principal): async ?[Types.Balance] {
         assert isAdmin(caller);
         Map.get<Principal, [Types.Balance]>(withdrawableBalances, phash, p)
@@ -250,8 +236,11 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
         };
     };
 
-    public shared query ({ caller }) func getMyBalances(): async ?[Types.Balance] {
-        Map.get<Principal, [Types.Balance]>(withdrawableBalances, phash, caller) 
+    public shared query ({ caller }) func getMyBalances(): async [Types.Balance] {
+        switch (Map.get<Principal, [Types.Balance]>(withdrawableBalances, phash, caller)){
+            case null [];
+            case ( ?bal ) {bal}
+        }
     };
 
     public shared ({ caller }) func withdrawal({token: Principal; amount: Nat; to: Account}): async {#Ok: Nat; #Err} {

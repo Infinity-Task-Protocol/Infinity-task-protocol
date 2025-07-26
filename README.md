@@ -98,7 +98,7 @@ A functional MVP with the following features implemented:
 ---
 ## Development During the Qualification Round
 #### Backend
-##### [Treasury Canister](candidTreasuryLink)
+##### [Treasury Canister](https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=irhil-eyaaa-aaaak-qukta-cai)
 * Development and integration of the Treasury canister
    * Architecture design:
       ![alt text](captures/acceptOfferFlow.png)
@@ -126,8 +126,13 @@ This consists of a call from the frontend to the Treasury canister to bring the 
 + Generic or platform notifications ➜ Users.
 
 
+---
+
+
+#### ︵‿︵‿︵‿︵ [**Roadmap**](./roadmap.md)
 
 ---
+
 ## 🌐 Live Dapp
 
 > ✅ **[Launch App on ICP Mainnet](https://grkfk-5iaaa-aaaak-quh7a-cai.icp0.io/)**  

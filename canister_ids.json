@@ -4,5 +4,8 @@
   },
   "frontend": {
     "ic": "grkfk-5iaaa-aaaak-quh7a-cai"
+  },
+  "treasury": {
+    "ic": "irhil-eyaaa-aaaak-qukta-cai"
   }
 }

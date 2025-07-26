@@ -59,7 +59,7 @@ dfx deps deploy
 
 echo "🚧 Deploying backend and treasury canisters..."
 dfx deploy backend
-dfx deploy treasury --argument "(record {mainPlatform = principal \"$(dfx canister id backend)\"})"
+dfx deploy treasury
 dfx canister call backend setTreasuryCanisterId "(principal \"$(dfx canister id treasury)\")"
 
 echo "💸 Sending initial ICP to Task Owners..."
@@ -110,14 +110,24 @@ dfx canister call icp_ledger icrc1_transfer "(
 echo "📝 TaskOwner0 signs up and creates a task..."
 dfx identity use 0000TaskOwner
 dfx canister call backend signUp '(record {name = "TaskOwner0"})'
-dfx canister call backend createTask '(record {
+
+dfx canister call backend createTask '(
+  record {
     title = "Test Task 1";
+    token = record {
+      fee = 10_000 : nat;
+      decimals = 8 : nat;
+      logo = "";
+      name = "Internet Computer";
+      symbol = "ICP";
+      canisterId = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
+    };
     assets = vec {};
     description = "Description test task 1";
-    keywords = vec { "Test"; "Motoko" };
+    keywords = vec { "CLI"; "DFX"; "Motoko" };
     rewardRange = record { 500000000 : nat; 1000000000 : nat };
-    token = "ICP"
-})'
+  },
+)'
 
 echo "🧪 Freelancer0 signs up, verifies, and applies for the task..."
 dfx identity use 0000Freelancer
@@ -160,12 +170,10 @@ dfx canister call backend paymentNotification "(
 echo "✅ Freelancer1 delibery task to TaskOwner0 ..."
 dfx identity use 0001Freelancer
 dfx canister call backend deliveryTask "(record {
-  _msg = \"Delivery Task Title\";
-  file = record {
-    id = 0 : nat;
+  description = \"Delivery Task Title\";
+  asset = record {
     data = blob \"\00\00\00\";
     mimeType = \"text\";
-    withAccess = vec {};
   };
   taskId = 1 : nat;
 })"
@@ -174,7 +182,7 @@ echo "✅ TaskOwner0 accept the task delivery from Freelancer1..."
 dfx identity use 0000TaskOwner
 dfx canister call backend acceptDelivery "(record { 
   review = \"Text Review\"; 
-  taskId = 1 : nat; 
+  deliveryId = 1 : nat; 
   qualification = 10 : nat8 
 })"
 
@@ -182,7 +190,7 @@ dfx identity use 0001Freelancer
 
 # balance =  600_000_000 - 10_000_000 - 5.6% of 600_000_000 = 556_400_000
 expected_output='(
-  opt vec {
+  vec {
     record {
       token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
       balance = 556_400_000 : nat;
@@ -200,7 +208,7 @@ account="(record {owner=principal \"$(dfx identity get-principal)\"; subaccount=
 dfx canister call treasury withdrawal "(record {token = principal \"ryjl3-tyaaa-aaaaa-aaaba-cai\"; amount = 400_000_000; to = $account})"
 
 expected_output='(
-  opt vec {
+  vec {
     record {
       token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
       balance = 156_390_000 : nat;

@@ -13,6 +13,9 @@
 # generated files
 **/declarations/
 
+# Pullable canisters dependencies
+deps
+
 # rust
 target/
 
