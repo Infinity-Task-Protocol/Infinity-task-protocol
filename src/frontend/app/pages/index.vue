@@ -1,25 +1,36 @@
 <script setup lang="ts">
 import logo5 from '@/assets/images/company/spotify.png'
+import type { TaskPreview } from '../../../declarations/backend/backend.did'
 const session = useSessionStore()
 const updatedTasks = ref<any[]>([])
 const loading = ref(true)
+const router = useRouter()
+
+const printRangeRewards = (task: TaskPreview) => {
+  const minReward = Number(task.rewardRange[0]) / 10 ** Number(task.token.decimals)
+  const maxReward = Number(task.rewardRange[1]) / 10 ** Number(task.token.decimals)
+
+  return `${minReward} $ ${task.token.symbol} / ${maxReward} $ ${task.token.symbol}`;
+
+}
 
 onMounted(async () => {
   try {
-    const tasks = await session.backend.getPaginateTaskPreview({
+    const tasks = (await session.backend.getPaginateTaskPreview({
       page: BigInt(0),
       qtyPerPage: [BigInt(50)]
-    })
-    updatedTasks.value = tasks.arr.map((task, i) => ({
+    })).arr as TaskPreview[]
+
+    updatedTasks.value = tasks.map((task, i) => ({
       ...task,
       id: task.id.toString(),
-      name: tasks.arr[i]?.title,
+      name: tasks[i]?.title,
       image: logo5,
-      salary: `${tasks.arr[i]?.rewardRange[0]} to ${tasks.arr[i]?.rewardRange[1]} USDC`,
+      salary: tasks[i] ? printRangeRewards(tasks[i]) : "",
       day: "2 days ago",
       type: "Full Time",
       time: "1 to 3 months",
-      language: tasks.arr[i]?.keywords,
+      language: tasks[i]?.keywords,
       location: "Argentina"
     }))
   } catch (error) {
@@ -55,6 +66,14 @@ onMounted(async () => {
         <path d="M0 48H2880V0H2160C1442.5 52 720 0 720 0H0V48Z" fill="currentColor" />
       </svg>
     </div>
+  </div>
+
+  <div v-if="session.user" class="flex justify-center w-full"> 
+    <button 
+      class="relative bg-[#225544] hover:bg-[#336633] cursor-pointer w-80 h-12 rounded-[15px] mt-5"
+      @click="goToCreateTask"
+    >
+      Create New Task</button>
   </div>
 
   <section class="relative md:py-24 py-16">

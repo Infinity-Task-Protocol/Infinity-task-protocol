@@ -16,7 +16,7 @@ definePageMeta({
 const session = useSessionStore()
 const user = session.user
 
-console.log(user.name)
+console.log(user?.name)
 
  const blobToImage = (uint8: number[], mimeType = 'image/png') => {
   const binary = String.fromCharCode(...uint8)
