@@ -14,7 +14,9 @@ const datas = ['Participate in requirements analysis', 'Write clean, scalable co
 
 
 const fetchBids = async () => {
+  console.log("on fetchBids", BigInt(id))
   const bidsResult = await session.backend.getBids(BigInt(id))
+  console.log(bidsResult)
   if ("Ok" in bidsResult) {
     bidsData.value = bidsResult.Ok
   } else {
@@ -47,6 +49,7 @@ const openBidModal = () => {
 
 onMounted(async () => {
 
+  console.log("onMunted")
   await fetchBids()
   taskData.value = await session.backend.expandTask(BigInt(id))
   isAuthor.value = (taskData.value[0].author.principal.toString() === session.identity.getPrincipal().toText() )

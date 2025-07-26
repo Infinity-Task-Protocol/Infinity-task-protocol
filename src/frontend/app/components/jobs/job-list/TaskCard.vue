@@ -73,6 +73,7 @@
 </template>
 
 <script setup lang="ts">
+
 const props = defineProps<{
   id: string
   image: string

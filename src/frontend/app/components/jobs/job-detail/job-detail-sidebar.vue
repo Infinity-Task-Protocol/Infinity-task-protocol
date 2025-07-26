@@ -35,7 +35,7 @@
                 {{ bid.name }}
               </p>
               <p class="text-sm text-gray-500 dark:text-gray-400">
-                {{ bid.amount }} ICP
+                {{ bid.amount }} {{ bid.tokenName }}
               </p>
             </div>
 
@@ -83,7 +83,7 @@
                 {{ selectedBid.name }}
               </h6>
               <p class="text-lg font-bold text-emerald-600">
-                {{ selectedBid.amount }} ICP
+                {{ selectedBid.amount }} {{selectedBid.tokenName}}
               </p>
             </div>
           </div>
@@ -195,7 +195,8 @@ const displayBids = computed(() => {
       id: principal.toText(),
       image: 'https://api.dicebear.com/7.x/identicon/svg?seed=' + principal.toText(),
       name: principal.toText().slice(0, 10) + '...',
-      amount: Number(offer.amount) / 1000000
+      amount: Number(offer.amount) / 10 ** Number(props.task[0]?.task.token.decimals),
+      tokenName: props.task[0]?.task.token.symbol,
     }
   })
 })
@@ -216,14 +217,19 @@ const handleAcceptBid = async () => {
     console.log('Accepting bid:', selectedBid.value)
 
     const taskId = BigInt(props.task[0]?.task?.id)
+    
     const bidderPrincipal = Principal.fromText(selectedBid.value.id)
 
-    await session.backend.acceptOffer(taskId, bidderPrincipal)
+    const response = await session.backend.acceptOffer(taskId, bidderPrincipal)
+    console.log(response)
+    if("Ok" in response){
+      isAcceptModalOpen.value = false
+      selectedBid.value = null
+      console.log("refrescar la vista como si props.task[0]?.task.status estuviera en #AcceptedOffer")
+    } else {
+      console.log("Este flujo quedaria deshabilitado debido al renderizado condicional vinculado a task.status")
+    }
 
-    isAcceptModalOpen.value = false
-    selectedBid.value = null
-
-    console.log('Bid accepted successfully!')
   } catch (error) {
     console.error('Error accepting bid:', error)
   }

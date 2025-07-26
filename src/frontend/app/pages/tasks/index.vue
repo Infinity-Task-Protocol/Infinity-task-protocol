@@ -3,6 +3,7 @@ import logo5 from '@/assets/images/company/spotify.png'
 import type { TaskPreview } from '../../../../declarations/backend/backend.did'
 const session = useSessionStore()
 const updatedTasks = ref<any[]>([])
+const tasks = ref<TaskPreview[]>([])
 const loading = ref(true)
 
 
@@ -38,6 +39,19 @@ onMounted(async () => {
     loading.value = false
   }
 })
+// TODO Implement this
+// onMounted(async () => {
+//   try {
+//     tasks.value = (await session.backend.getPaginateTaskPreview({
+//       page: BigInt(0),
+//       qtyPerPage: [BigInt(50)]
+//     })).arr as TaskPreview[]
+//   } catch (error) {
+//     console.error('backend error:', error)
+//   } finally {
+//     loading.value = false
+//   }
+// })
 </script>
 
 <template>

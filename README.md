@@ -98,7 +98,7 @@ A functional MVP with the following features implemented:
 ---
 ## Development During the Qualification Round
 #### Backend
-##### [Treasury Canister](candidTreasuryLink)
+##### [Treasury Canister](https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=irhil-eyaaa-aaaak-qukta-cai)
 * Development and integration of the Treasury canister
    * Architecture design:
       ![alt text](captures/acceptOfferFlow.png)
