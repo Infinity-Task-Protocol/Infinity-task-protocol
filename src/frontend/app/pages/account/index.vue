@@ -1,10 +1,10 @@
 
-<script setup>
+<script setup lang="ts">
 
-// import image from '@/assets/images/team/01.jpg'
+import image from '@/assets/images/team/01.jpg'
 // import bg from '@/assets/images/hero/bg5.jpg'
 import logo1 from '@/assets/images/company/shree-logo.png'
-import logo2 from '@/assets/images/company/circle-logo.png'
+import bgImage from '@/assets/images/hero/curve-shape-dark.png'
 import CandidateProfile from "~/components/candidates/candidate-profile.vue";
 
 definePageMeta({
@@ -16,34 +16,35 @@ definePageMeta({
 const session = useSessionStore()
 const user = session.user
 
-const blobToImage = (blob) => {
-  return "image/png;base64," + btoa(
-    String.fromCharCode(...new Uint8Array(blob))
-  );
-}
+console.log(user.name)
 
+ const blobToImage = (uint8: number[], mimeType = 'image/png') => {
+  const binary = String.fromCharCode(...uint8)
+  const base64 = btoa(binary)
+  return `data:${mimeType};base64,${base64}`
+}
 </script>
 
 <template>
   <section class="relative lg:mt-24 mt-[74px]">
     <div class="container">
       <div class="relative shrink-0">
-        <img :src="user?.coverPhoto ? blobToImage(user?.coverPhoto) : ' '" class="h-64 w-full object-cover lg:rounded-xl shadow-sm shadow-gray-200 dark:shadow-gray-700" alt="">
+        <img :src="user?.coverPhoto ? blobToImage(user?.coverPhoto) : bgImage " class="h-64 w-full object-cover lg:rounded-xl shadow-sm shadow-gray-200 dark:shadow-gray-700" alt="">
       </div>
 
       <div class="md:flex mx-4 -mt-12">
         <div class="md:w-full">
           <div class="relative flex items-end justify-between">
             <div class="relative flex items-end">
-              <img :src="user?.avatar ? blobToImage(user?.avatar) : image" class="size-28 rounded-full shadow-sm dark:shadow-gray-800 ring-4 ring-slate-50 dark:ring-slate-800" alt="">
+              <img :src=" `https://avatar.iran.liara.run/username?username=[${user.name}]`" class="size-28 rounded-full shadow-sm dark:shadow-gray-800 ring-4 ring-slate-50 dark:ring-slate-800" alt="">
               <div class="ms-4">
-                <h5 class="text-lg font-semibold">{{user?.name}}</h5>
-                <p class="text-slate-400">{{user?.position }}</p>
+                <h5 class="text-lg font-semibold">{{user?.name ? user.name : ""}}</h5>
+                <p class="text-slate-400">{{user?.position ? user.position : ""}}</p>
               </div>
             </div>
 
             <div class="">
-              <router-link to="/" class="size-9 font-semibold tracking-wide border align-middle transition duration-500 ease-in-out inline-flex items-center text-center justify-center text-base rounded-full bg-emerald-600/5 hover:bg-emerald-600 border-emerald-600/10 hover:border-emerald-600 text-emerald-600 hover:text-white"><i data-feather="settings" class="size-4"></i></router-link>
+              <nuxt-link to="account/edit" class="size-9 font-semibold tracking-wide border align-middle transition duration-500 ease-in-out inline-flex items-center text-center justify-center text-base rounded-full bg-emerald-600/5 hover:bg-emerald-600 border-emerald-600/10 hover:border-emerald-600 text-emerald-600 hover:text-white"><i data-feather="settings" class="size-4"></i></nuxt-link>
             </div>
           </div>
         </div>
