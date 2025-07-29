@@ -117,15 +117,15 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
     
         for (field in metadata.vals()) {
            switch (field) {
-            case ("icrc1:name", #Text(_name)) { name := name };
-            case ("icrc1:symbol", #Text(_symbol)) { symbol := symbol };
+            case ("icrc1:name", #Text(_name)) { name := _name };
+            case ("icrc1:symbol", #Text(_symbol)) { symbol := _symbol };
             case ("icrc1:logo", #Text(_logo)) {logo := _logo};
             case ("icrc1:fee", #Nat(_fee)) { fee := _fee };
             case ("icrc1:decimals", #Nat(_decimals)) { decimals := _decimals };
             case _ {}
            }
         };
-        if (name == "" or symbol == "" or decimals == 0 or fee != 0) {
+        if (name == "" or symbol == "" or decimals == 0 or fee == 0) {
             return false
         };
         let newToken: Types.Token = {
