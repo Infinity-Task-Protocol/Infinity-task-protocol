@@ -156,7 +156,7 @@ const data = ref(null)
 // Props del componente
 const props = defineProps({
   task: {
-    type: Array,
+    type: Object,
     default: () => []
   },
   bids: {
@@ -195,8 +195,8 @@ const displayBids = computed(() => {
       id: principal.toText(),
       image: 'https://api.dicebear.com/7.x/identicon/svg?seed=' + principal.toText(),
       name: principal.toText().slice(0, 10) + '...',
-      amount: Number(offer.amount) / 10 ** Number(props.task[0]?.task.token.decimals),
-      tokenName: props.task[0]?.task.token.symbol,
+      amount: Number(offer.amount) / 10 ** Number(props.task.token.decimals),
+      tokenName: props.task.token.symbol,
     }
   })
 })

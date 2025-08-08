@@ -1,9 +1,11 @@
 <script setup>
 import logo5 from '@/assets/images/company/spotify.png'
+// import { TaskExpand } from '../../../../../declarations/backend/backend.did'
 const session = useSessionStore()
 const { id } = useRoute().params
-const taskData = ref([])
-const bidsData = ref()
+const taskData = ref(null)
+const bidsDetails = ref(null)
+const author = ref()
 const isAuthor = ref(false)
 
 // Estado del modal
@@ -13,21 +15,25 @@ const bidAmount = ref('')
 const datas = ['Participate in requirements analysis', 'Write clean, scalable code using C# and .NET frameworks', 'Test and deploy applications and systems', 'Revise, update, refactor and debug code', 'Improve existing software', 'Develop documentation throughout the software development life cycle (SDLC', 'Serve as an expert on applications and provide technical support']
 
 
-const fetchBids = async () => {
-  console.log("on fetchBids", BigInt(id))
-  const bidsResult = await session.backend.getBids(BigInt(id))
-  console.log(bidsResult)
-  if ("Ok" in bidsResult) {
-    bidsData.value = bidsResult.Ok
-  } else {
-    console.warn("Failed to fetch bids", bidsResult)
-  }
-}
+// const fetchBids = async () => {
+//   console.log("on fetchBids", BigInt(id))
+//   const bidsResult = await session.backend.getBids(BigInt(id))
+//   console.log(bidsResult)
+//   if ("Ok" in bidsResult) {
+//     bidsData.value = bidsResult.Ok
+//   } else {
+//     console.warn("Failed to fetch bids", bidsResult)
+//   }
+// }
 
 // Función para manejar el bid
 const handleMakeBid = async () => {
-  const decimals = 6 // TODO: Tomar el valor de decimales de la moneda seleccionada 
-  const amount = BigInt(parseFloat(bidAmount.value) * 10 ** decimals )
+  // const decimals = 6 // TODO: Tomar el valor de decimales de la moneda seleccionada
+  const bidAmountString = String(bidAmount.value);
+  const [intPart="0", decimalPart=""] = bidAmountString.split(".");
+  const amountString = intPart + decimalPart + '0'.repeat(Number(taskData.value?.token.decimals) - decimalPart.length)
+  const amount = BigInt(amountString)
+  console.log(amount)
 
   if (!amount || amount <= 0) {
     console.error('Please enter a valid bid amount')
@@ -40,21 +46,29 @@ const handleMakeBid = async () => {
   bidAmount.value = ''
 
   console.log('Bid submitted successfully!')
-  await fetchBids()
+  // await fetchBids()
 }
 
 const openBidModal = () => {
   isBidModalOpen.value = true
 }
 
+
 onMounted(async () => {
 
   console.log("onMunted")
-  await fetchBids()
-  taskData.value = await session.backend.expandTask(BigInt(id))
-  isAuthor.value = (taskData.value[0].author.principal.toString() === session.identity.getPrincipal().toText() )
-
-  console.log(taskData.value)
+  // await fetchBids()
+  let taskResponse = await session.backend.expandTask(BigInt(id))
+  if(taskResponse[0]){
+    taskData.value = taskResponse[0].task
+    bidsDetails.value = taskResponse[0].bidsDetails
+    author.value = taskResponse[0].author
+  } else {
+    console.log("salir del componente")
+  }
+   
+  isAuthor.value = (author.principal === session.identity.getPrincipal() )
+  console.log(taskResponse)
 
 })
 </script>
@@ -162,7 +176,7 @@ onMounted(async () => {
         </div>
 
         <div class="lg:col-span-4 md:col-span-6">
-          <JobsJobDetailSidebar :hide-bids="!isAuthor" :bids="bidsData" :task="taskData"/>
+          <JobsJobDetailSidebar v-if="bidsDetails" :hide-bids="!isAuthor" :bids="bidsDetails" :task="taskData"/>
         </div>
       </div>
     </div>
@@ -178,7 +192,7 @@ onMounted(async () => {
                 id="bidAmount"
                 v-model="bidAmount"
                 type="number"
-                step="0.01"
+                step="0.0001"
                 min="0"
                 placeholder="Enter your bid amount"
                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 dark:bg-slate-800 dark:border-slate-600 dark:text-white"

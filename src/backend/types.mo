@@ -9,6 +9,7 @@ module {
         principal : Principal;
         name : Text;
         avatar : ?Blob;
+        thumbnail: ?Blob;
         coverImage: ?Blob;
         bio: ?Text;
         email : ?Text;
@@ -21,9 +22,19 @@ module {
         skills: [Text];
     };
 
+    public type UserPreview = {
+        principal : Principal;
+        name : Text;
+        score : Nat;
+        position: ?Text;
+        thumbnail: ?Blob;
+        verified: Bool;
+    };
+
     public type UserUpdatableData = {
         name : ?Text;
         avatar : ?Blob;
+        thumbnail: ?Blob;
         coverImage: ?Blob;
         email : ?Text;
         socialLinks : [Text];
@@ -37,6 +48,7 @@ module {
             principal = Principal.fromText("2vxsx-fae");
             name = "";
             avatar = null;
+            thumbnail = null;
             coverImage = null;
             email = null;
             verified = false;
@@ -94,6 +106,7 @@ module {
 
     public type BidsResult = {
       #Ok: [(Principal, Offer)];
+      #taskNotFound;
       #unauthorized;
     };
 
@@ -128,7 +141,7 @@ module {
         assets : [Asset];
     };
 
-    public type Offer = {
+    public type Offer = UserPreview and {
         amount : Nat;
         date : Int;
     };

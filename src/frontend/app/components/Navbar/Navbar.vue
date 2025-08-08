@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {ref, onMounted, onUnmounted} from 'vue'
+import { blobToImageUrl } from '../../utils/imageManager'
 
 // 🧩 Props
 defineProps<{
@@ -90,8 +91,12 @@ const dropdownItems = [
                 type="button"
             >
               <span
-                  class="size-9 inline-flex items-center text-center justify-center text-base font-semibold tracking-wide border align-middle transition duration-500 ease-in-out rounded-full bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700 text-white">
-                <img src="../../assets/images/team/01.jpg" class="rounded-full" alt="">
+                  class="size-10 inline-flex items-center text-center justify-center text-base font-semibold tracking-wide border align-middle transition duration-500 ease-in-out rounded-full bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700 text-white">
+                <!-- <img src="../../assets/images/team/01.jpg" class="rounded-full" alt=""> -->
+                 <img v-if="session.user && session.user.avatar[0]" :src="blobToImageUrl(session.user.avatar[0]) as string" class="rounded-full h-9 w-9" alt="Foto del usuario">
+                  <span v-else>
+                    {{ session.user ? session.user.name.split(" ").map(word => word[0]).join(' ').toUpperCase() : '?' }}
+                  </span>
               </span>
             </button>
           </template>

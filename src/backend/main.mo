@@ -12,11 +12,11 @@ import Blob "mo:base/Blob";
 import Nat "mo:base/Nat";
 import Text "mo:base/Text";
 import Ledger "../interfaces/ICP_Token/ledger_icp";
-import icrc2 "../interfaces/icrc2";
+// import icrc2 "../interfaces/icrc2";
 import TreasuryTypes "../treasury/types";
 import ChatTypes "../chat/types";
 
-shared ({caller = DEPLOYER}) actor class() {
+shared ({caller = DEPLOYER}) persistent actor  class() {
 
   type User = Types.User;
   type UserUpdatableData = Types.UserUpdatableData;
@@ -26,23 +26,23 @@ shared ({caller = DEPLOYER}) actor class() {
   type Task = Types.Task;
   type TaskPreview = Types.TaskPreview;
 
-  stable let users = Map.new<Principal, User>();
+  let users = Map.new<Principal, User>();
   
-  stable let notifications = Map.new<Principal, [Types.Notification]>();
-  stable let msgs = Map.new<Principal, [Types.Msg]>();
-  stable let activeTasks = Map.new<Nat, Types.Task>();
-  stable let archivedTasks = Map.new<Nat, Types.Task>();
-  stable let deliveries = Map.new<Nat, Types.DeliveryTask>();
-  stable let certificates = Map.new<Principal, [Types.Certificate]>();
-  stable var admins: [Principal] = [DEPLOYER];
+  let notifications = Map.new<Principal, [Types.Notification]>();
+  let msgs = Map.new<Principal, [Types.Msg]>();
+  let activeTasks = Map.new<Nat, Types.Task>();
+  let archivedTasks = Map.new<Nat, Types.Task>();
+  let deliveries = Map.new<Nat, Types.DeliveryTask>();
+  let certificates = Map.new<Principal, [Types.Certificate]>();
+  var admins: [Principal] = [DEPLOYER];
   
   //////////////// Temporal Variables //////////////////////
 
-  let verificationCodes = Map.new<Principal, Nat>();
-  stable let transferArgsByTask = Map.new<Nat, Ledger.TransferArg>();
+  transient let verificationCodes = Map.new<Principal, Nat>();
+  let transferArgsByTask = Map.new<Nat, Ledger.TransferArg>();
   //////////////// Platform Variables //////////////////////
 
-  stable var platformFee: TreasuryTypes.PlatformFee = {
+  var platformFee: TreasuryTypes.PlatformFee = {
     fixedPart = 10_000_000; // 0.1 ICP
     permilePart = 56 // 56 permile -> 5.6% ammount
   };
@@ -50,23 +50,23 @@ shared ({caller = DEPLOYER}) actor class() {
 
   ///////////// Canisters ids /////////////
 
-  stable var treasuryCanisterId: Principal = Principal.fromText("2vxsx-fae");
-  stable var chatCanisterId: Principal = Principal.fromText("2vxsx-fae"); 
+  var treasuryCanisterId: Principal = Principal.fromText("2vxsx-fae");
+  var chatCanisterId: Principal = Principal.fromText("2vxsx-fae"); 
   
   ////////////////////////////////////////
-  let rand = Random.Rand();
+  transient let rand = Random.Rand();
 
   ///////////////// State variables ////////////////////////
 
-  stable var lastTaskId = 0;
-  stable var lastDeliveryTask = 0;
-  stable var lastCertificateId = 0;
-  stable var lastMemoTransactionId = 0;
+  var lastTaskId = 0;
+  var lastDeliveryTask = 0;
+  var lastCertificateId = 0;
+  var lastMemoTransactionId = 0;
 
   /////////// Separar hacia un canister bucket /////////////
 
-  stable let files = Map.new<Nat, Types.File>();
-  stable var lastFileId = 0;
+  let files = Map.new<Nat, Types.File>();
+  var lastFileId = 0;
 
   ////////////////// Settings functions ///////////////////
 
@@ -130,8 +130,6 @@ shared ({caller = DEPLOYER}) actor class() {
     );
     ignore Map.put<Principal, [Types.Certificate]>(certificates, phash, user, updateCertificates);
 
-
-
   };
 
   ///////////////// User functions //////////////////////
@@ -190,7 +188,7 @@ shared ({caller = DEPLOYER}) actor class() {
       case null { return #Err("User not found") };
       case (?user) { user };
     };
-    let { name; email; avatar; position; skills; bio; socialLinks; coverImage } = data;
+    let { name; email; avatar; thumbnail; position; skills; bio; socialLinks; coverImage } = data;
     let verified = (user.email == email) and (email != null); // En caso de que el usuario modifique su email tendrá que verificarlo nuevamente
     let updatedUser = {
       user with
@@ -198,6 +196,7 @@ shared ({caller = DEPLOYER}) actor class() {
       name = switch (name) { case null user.name; case (?n) n };
       email = switch (email) { case null user.email; case (e) e };
       avatar = switch (avatar) { case null user.avatar; case (a) a };
+      thumbnail = switch (thumbnail) { case null user.thumbnail; case (t) t };
       position = switch (position) { case null user.position; case (p) p };
       bio = switch (bio) { case null user.bio; case (b) b };
       coverImage;
@@ -206,6 +205,17 @@ shared ({caller = DEPLOYER}) actor class() {
     };
     ignore Map.put<Principal, User>(users, phash, caller, updatedUser);
     #Ok(updatedUser);
+  };
+
+  public shared ({ caller }) func loadAvatar(avatar: ?Blob): async ?User {
+    let user = Map.get<Principal, User>(users, phash, caller);
+    switch user {
+      case null { null };
+      case ( ?user ) {
+        ignore Map.put<Principal, User>(users, phash, caller, { user with avatar});
+        ?{ user with avatar }
+      }
+    }
   };
 
   public shared ({ caller }) func getVerificationCode(): async ?Nat {
@@ -313,7 +323,7 @@ shared ({caller = DEPLOYER}) actor class() {
 
   type TaskExpandResponse = {
     task: Types.TaskExpand; 
-    author: User; 
+    author: Types.UserPreview; 
     bidsDetails: [(Principal, Types.Offer)]
   };
 
@@ -330,10 +340,6 @@ shared ({caller = DEPLOYER}) actor class() {
         return ?{task = {task with bidsCounter};  author = user; bidsDetails};
       }
     };
-  };
-
-  func getChatId(caller: Principal, users: [Principal], scopeId: ?ChatTypes.Scope): Nat32 {
-    ChatTypes.getChatId(caller, users, scopeId)
   };
 
   public shared ({ caller }) func updateTask({id : Nat; data: Types.UpdatableDataTask}) : async { #Ok; #Err: Text } {
@@ -401,7 +407,7 @@ shared ({caller = DEPLOYER}) actor class() {
       return #Err("Amount offer is out of range");
     };
     print("Applying for task: " # Nat.toText(taskId) # " with amount: " # Nat.toText(amount));
-    ignore Map.put<Principal, Types.Offer>(task.bids, phash, caller, {date = now(); amount });
+    ignore Map.put<Principal, Types.Offer>(task.bids, phash, caller, {user with date = now(); amount });
     ////// Task Owner Push Notification ///////
     pushNotification(
       task.owner,
@@ -418,7 +424,7 @@ shared ({caller = DEPLOYER}) actor class() {
   public shared query ({ caller }) func getBids(taskId: Nat): async BidsResult {
     switch (Map.get<Nat, Task>(activeTasks, nhash, taskId)) {
       case null {
-        return return #Ok([]);
+        return #taskNotFound;
       };
       case (?task) {
         if (caller != task.owner) return #unauthorized;
@@ -517,7 +523,10 @@ shared ({caller = DEPLOYER}) actor class() {
               activeTasks, 
               nhash, 
               taskId, 
-              { task with chatId = ?981: ?Nat32; status = #PaymentDepositDone(now())})
+              { 
+                task with 
+                chatId = ?ChatTypes.getChatId(caller, [userAssigned], ?{id = Nat.toText(taskId); name = "Task"}); 
+                status = #PaymentDepositDone(now())})
             
             };
           case (#Err(_)) { };

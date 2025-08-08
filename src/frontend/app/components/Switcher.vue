@@ -10,9 +10,9 @@
         </span>
     </div>
 
-    <div class="fixed top-1/2 -right-11 z-50 hidden sm:block">
+    <!-- <div class="fixed top-1/2 -right-11 z-50 hidden sm:block">
         <a href="https://1.envato.market/jobstack-vue" target="_blank" class="py-1 px-3 relative inline-block rounded-t-md -rotate-90 bg-white dark:bg-slate-900 shadow-md dark:shadow-sm dark:shadow-gray-800 font-semibold"><i class="mdi mdi-cart-outline me-1"></i> Download</a>
-    </div>
+    </div> -->
 
     <div class="fixed top-[40%] -left-3 z-50">
         <router-link to="#" id="switchRtl">

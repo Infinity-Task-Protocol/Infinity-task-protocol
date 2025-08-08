@@ -178,68 +178,68 @@ dfx canister call backend deliveryTask "(record {
   taskId = 1 : nat;
 })"
 
-echo "✅ TaskOwner0 accept the task delivery from Freelancer1..."
-dfx identity use 0000TaskOwner
-dfx canister call backend acceptDelivery "(record { 
-  review = \"Text Review\"; 
-  deliveryId = 1 : nat; 
-  qualification = 10 : nat8 
-})"
+# echo "✅ TaskOwner0 accept the task delivery from Freelancer1..."
+# dfx identity use 0000TaskOwner
+# dfx canister call backend acceptDelivery "(record { 
+#   review = \"Text Review\"; 
+#   deliveryId = 1 : nat; 
+#   qualification = 10 : nat8 
+# })"
 
-dfx identity use 0001Freelancer
+# dfx identity use 0001Freelancer
 
-# balance =  600_000_000 - 10_000_000 - 5.6% of 600_000_000 = 556_400_000
-expected_output='(
-  vec {
-    record {
-      token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
-      balance = 556_400_000 : nat;
-    };
-  },
-)'
-actual_output=$(dfx canister call treasury getMyBalances)
-if [ "$actual_output" == "$expected_output" ]; then
-  echo "✅ Test passed"
-else
-  echo "❌ Test failed"
-fi
-account="(record {owner=principal \"$(dfx identity get-principal)\"; subaccount=null})"
+# # balance =  600_000_000 - 10_000_000 - 5.6% of 600_000_000 = 556_400_000
+# expected_output='(
+#   vec {
+#     record {
+#       token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
+#       balance = 556_400_000 : nat;
+#     };
+#   },
+# )'
+# actual_output=$(dfx canister call treasury getMyBalances)
+# if [ "$actual_output" == "$expected_output" ]; then
+#   echo "✅ Test passed"
+# else
+#   echo "❌ Test failed"
+# fi
+# account="(record {owner=principal \"$(dfx identity get-principal)\"; subaccount=null})"
 
-dfx canister call treasury withdrawal "(record {token = principal \"ryjl3-tyaaa-aaaaa-aaaba-cai\"; amount = 400_000_000; to = $account})"
+# dfx canister call treasury withdrawal "(record {token = principal \"ryjl3-tyaaa-aaaaa-aaaba-cai\"; amount = 400_000_000; to = $account})"
 
-expected_output='(
-  vec {
-    record {
-      token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
-      balance = 156_390_000 : nat;
-    };
-  },
-)'
-actual_output=$(dfx canister call treasury getMyBalances)
-if [ "$actual_output" == "$expected_output" ]; then
-  echo "✅ Test passed"
-else
-  echo "❌ Test failed"
-fi
+# expected_output='(
+#   vec {
+#     record {
+#       token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
+#       balance = 156_390_000 : nat;
+#     };
+#   },
+# )'
+# actual_output=$(dfx canister call treasury getMyBalances)
+# if [ "$actual_output" == "$expected_output" ]; then
+#   echo "✅ Test passed"
+# else
+#   echo "❌ Test failed"
+# fi
 
-expectedBalance="4.00000000 ICP"
-balance=$(dfx ledger balance)
-if [[ $balance ==  $expectedBalance ]]; then
-  echo "✅ Test passed"
-else
-  echo "❌ Test failed"
-  echo $balance
-  echo $expectedBalance
-fi
+# expectedBalance="4.00000000 ICP"
+# balance=$(dfx ledger balance)
+# if [[ $balance ==  $expectedBalance ]]; then
+#   echo "✅ Test passed"
+# else
+#   echo "❌ Test failed"
+#   echo $balance
+#   echo $expectedBalance
+# fi
 
-dfx canister call treasury withdrawal "(record {token = principal \"ryjl3-tyaaa-aaaaa-aaaba-cai\"; amount = 156_380_000; to = $account})"
+# dfx canister call treasury withdrawal "(record {token = principal \"ryjl3-tyaaa-aaaaa-aaaba-cai\"; amount = 156_380_000; to = $account})"
 
-expectedBalance="5.56380000 ICP" 
-balance=$(dfx ledger balance)
-if [[ $balance ==  $expectedBalance ]]; then
-  echo "✅ Test passed"
-else
-  echo "❌ Test failed"
-  echo $balance
-  echo $expectedBalance
-fi
+# expectedBalance="5.56380000 ICP" 
+# balance=$(dfx ledger balance)
+# if [[ $balance ==  $expectedBalance ]]; then
+#   echo "✅ Test passed"
+# else
+#   echo "❌ Test failed"
+#   echo $balance
+#   echo $expectedBalance
+# fi

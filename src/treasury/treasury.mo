@@ -13,7 +13,7 @@ import Iter "mo:base/Iter";
 import LedgerTypes "../interfaces/ICP_Token/ledger_icp";
 
 
-shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = this {
+shared ({caller = superAdmin}) persistent actor class Treasury(initArgs: Types.InitArgs) = this {
 
     /////////////////////////////////////////// Types ////////////////////////////////////////////////////////
 
@@ -23,21 +23,21 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
 
     /////////////////////////////////////// Variables state /////////////////////////////////////////////////
 
-    stable var admins: [Principal] = [superAdmin];
-    stable var activityLog: List.List<ActivityLogEntry> = List.nil<ActivityLogEntry>();
-    stable var withdrawalLog: List.List<WhitdrawalLogEntry> = List.nil<Types.WhitdrawalLogEntry>();
-    stable var internalSubaccounts: [Blob] = [
+    var admins: [Principal] = [superAdmin];
+    var activityLog: List.List<ActivityLogEntry> = List.nil<ActivityLogEntry>();
+    var _withdrawalLog: List.List<WhitdrawalLogEntry> = List.nil<Types.WhitdrawalLogEntry>();
+    var _internalSubaccounts: [Blob] = [
         "feecollector00000000000000000000",
         "escrows0000000000000000000000000",
     ];
-    stable let escrows = Map.new<Types.EscrowId, Types.Escrow>();
+    let escrows = Map.new<Types.EscrowId, Types.Escrow>();
 
-    stable let supportedTokens = Map.make<Text, Types.Token>(thash, "Internet Computer", Types.icpToken());
+    let supportedTokens = Map.make<Text, Types.Token>(thash, "Internet Computer", Types.icpToken());
 
-    stable var lastEscrowId = 0;
-    stable var lastMemoTransactionId = 0;
+    var lastEscrowId = 0;
+    var lastMemoTransactionId = 0;
 
-    stable var withdrawableBalances = Map.new<Principal, [Types.Balance]>();
+    var withdrawableBalances = Map.new<Principal, [Types.Balance]>();
 
     //////////////////////////////////// Private Functions ///////////////////////////////////////////////////
 

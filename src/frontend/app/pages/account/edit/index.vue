@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import {compressAndConvertImage, blobToImageUrl, uint8ArrayToBase64 } from "../../../utils/imageManager"
 
 definePageMeta({
   middleware: ['auth'],
@@ -14,42 +15,55 @@ const form = ref({
   bio: '',
   skills: [] as string[],
   socialLinks: [] as string[],
-  avatar: null as File | null,
-  coverImage: null as File | null,
+  avatar: [] as Uint8Array[],
+  thumbnail: [] as Uint8Array[],
+  coverImage: [] as Uint8Array[],
 })
 
-function handleAvatar(e: Event) {
-  const input = e.target as HTMLInputElement
-  form.value.avatar = input.files?.[0] ?? null
+if (session.user) {
+  form.value.name = session.user.name;
+  form.value.email = session.user.email[0]? session.user.email[0]: "";
+  form.value.bio = session.user.bio[0] ? session.user.bio[0] : ""
+  form.value.position = session.user.position[0]? session.user.position[0] : "";
+  form.value.skills = session.user.skills;
+  form.value.socialLinks = session.user.socialLinks;
+  form.value.avatar = session.user.avatar as Uint8Array[];
+  form.value.thumbnail = session.user.thumbnail as Uint8Array[];
+  form.value.coverImage = session.user.coverImage as Uint8Array[];
 }
+const handleFileUpload = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (file) {
+    form.value.avatar = [await compressAndConvertImage(file, 500, 1000, 1000)]
+    form.value.thumbnail = [await compressAndConvertImage(file, 50, 150, 150)]
+  }
+};
 
-function handleCoverImage(e: Event) {
-  const input = e.target as HTMLInputElement
-  form.value.coverImage = input.files?.[0] ?? null
-}
-
-async function fileToUint8Array(file: File | null): Promise<[] | number[]> {
-  if (!file) return []
-  const buffer = await file.arrayBuffer()
-  return Array.from(new Uint8Array(buffer))
+const handleCoverImage = async (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (file) {
+    form.value.coverImage = [await compressAndConvertImage(file, 700, 1200, 1200)]
+  }
 }
 
 async function handleSubmit() {
-  const avatarBytes = await fileToUint8Array(form.value.avatar)
-  const coverImageBytes = await fileToUint8Array(form.value.coverImage)
 
   const payload = {
     name: form.value.name ? [form.value.name] : [],
     email: form.value.email ? [form.value.email] : [],
     position: form.value.position ? [form.value.position] : [],
-    bio: form.value.bio ? [form.value.bio] : [],
+    bio: [form.value.bio.trim()],
     skills: form.value.skills,
     socialLinks: form.value.socialLinks,
-    avatar: avatarBytes.length > 0 ? [avatarBytes] : [],
-    coverImage: coverImageBytes.length > 0 ? [coverImageBytes] : [],
+    avatar: form.value.avatar,
+    coverImage: form.value.coverImage,
+    thumbnail: form.value.thumbnail,
   }
 
   const res = await session.backend.editProfile(payload)
+  if ("Ok" in res) {
+    session.user = res.Ok
+  }
   navigateTo("/account")
 }
 </script>
@@ -95,7 +109,7 @@ async function handleSubmit() {
 
               <div>
                 <label class="font-semibold">Avatar:</label>
-                <input type="file" @change="handleAvatar" class="form-input mt-1 border" />
+                <input type="file" @change="handleFileUpload" class="form-input mt-1 border" />
               </div>
 
               <div>

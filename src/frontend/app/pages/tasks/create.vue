@@ -15,6 +15,7 @@ const session = useSessionStore()
 
 const tokens = await session.treasury.getSupportedTokens()
 console.log(tokens[0])
+console.log(session.user?.principal.toText())
 const router = useRouter()
 
 //const acceptedTokens = session.treasury.getSupportedToken()
