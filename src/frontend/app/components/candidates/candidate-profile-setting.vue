@@ -34,18 +34,20 @@
                             <div class="lg:col-span-3">
                                 <label class="form-label font-medium">State :</label>
                                 <select class="form-select form-input border border-slate-100 dark:border-slate-800 block w-full mt-2">
-                                    <option value="NY">New York</option>
-                                    <option value="MC">North Carolina</option>
-                                    <option value="SC">South Carolina</option>
+                                    <option value="MDQ">Mar del Plata</option>
+                                    <option value="BSAS">Buenos Aires</option>
+                                    <option value="SC">Santiago</option>
+                                    <option value="STC">Santa Cruz</option>
                                 </select>
                             </div>
 
                             <div class="lg:col-span-3">
                                 <label class="form-label font-medium">Country :</label>
                                 <select class="form-select form-input border border-slate-100 dark:border-slate-800 block w-full mt-2">
-                                    <option value="NY">USA</option>
-                                    <option value="MC">UK</option>
-                                    <option value="SC">India</option>
+                                    <option value="MDQ">Mar del Plata</option>
+                                    <option value="BSAS">Buenos Aires</option>
+                                    <option value="STG">Santiago</option>
+                                    <option value="STC">Santa Cruz</option>
                                 </select>
                             </div>
 

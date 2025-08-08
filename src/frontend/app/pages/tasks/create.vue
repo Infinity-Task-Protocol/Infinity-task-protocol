@@ -15,6 +15,7 @@ const session = useSessionStore()
 
 const tokens = await session.treasury.getSupportedTokens()
 console.log(tokens[0])
+const router = useRouter()
 
 //const acceptedTokens = session.treasury.getSupportedToken()
 
@@ -64,6 +65,7 @@ async function handleSubmit() {
   }
 
   const response = await session.backend.createTask(payload)
+  await router.push('/tasks')
   console.log('Task created:', response)
 
 }
