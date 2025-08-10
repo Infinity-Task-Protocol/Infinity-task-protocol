@@ -53,7 +53,7 @@ const isOpen = ref(false)
 
 const dropdownItems = [
   [{label: 'Account', icon: 'i-heroicons-home', onSelect: () => navigateTo('/account')}],
-  [{label: 'Settings', icon: 'i-heroicons-cog-6-tooth', onSelect: () => navigateTo('/account/settings')}],
+  [{label: 'Dashboard', icon: 'i-heroicons-cog-6-tooth', onSelect: () => navigateTo('/account/dashboard')}],
   [{
     label: 'Sign out', icon: 'i-heroicons-arrow-left-on-rectangle', onSelect() {
       logout()
@@ -73,7 +73,7 @@ const dropdownItems = [
 
       <!-- Botón conectar -->
       <div v-if="!session?.isAuthenticated" class="flex items-center md:order-2 space-x-1">
-        <UButton label="Connect Wallet" @click="isOpen = true" color="primary"/>
+        <UButton label="Login" @click="isOpen = true" color="primary"/>
       </div>
 
       <!-- Avatar con dropdown -->
