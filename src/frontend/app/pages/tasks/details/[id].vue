@@ -1,77 +1,59 @@
-<script setup>
+<script setup lang="ts">
 import logo5 from '@/assets/images/company/spotify.png'
-// import { TaskExpand } from '../../../../../declarations/backend/backend.did'
-const session = useSessionStore()
-const { id } = useRoute().params
-const taskData = ref(null)
-const bidsDetails = ref(null)
-const author = ref()
-const isAuthor = ref(false)
+import { toBigIntAmount } from '@/utils/token'
+import { useTask } from '@/composables/useTask'
 
-// Estado del modal
+const { id } = useRoute().params
+const session = useSessionStore()
+
+const { taskData, bidsDetails, author, isAuthor, loadTask } = useTask()
+
 const isBidModalOpen = ref(false)
 const bidAmount = ref('')
 
-const datas = ['Participate in requirements analysis', 'Write clean, scalable code using C# and .NET frameworks', 'Test and deploy applications and systems', 'Revise, update, refactor and debug code', 'Improve existing software', 'Develop documentation throughout the software development life cycle (SDLC', 'Serve as an expert on applications and provide technical support']
+const openBidModal = () => { isBidModalOpen.value = true }
 
-
-// const fetchBids = async () => {
-//   console.log("on fetchBids", BigInt(id))
-//   const bidsResult = await session.backend.getBids(BigInt(id))
-//   console.log(bidsResult)
-//   if ("Ok" in bidsResult) {
-//     bidsData.value = bidsResult.Ok
-//   } else {
-//     console.warn("Failed to fetch bids", bidsResult)
-//   }
-// }
-
-// Función para manejar el bid
 const handleMakeBid = async () => {
-  // const decimals = 6 // TODO: Tomar el valor de decimales de la moneda seleccionada
-  const bidAmountString = String(bidAmount.value);
-  const [intPart="0", decimalPart=""] = bidAmountString.split(".");
-  const amountString = intPart + decimalPart + '0'.repeat(Number(taskData.value?.token.decimals) - decimalPart.length)
-  const amount = BigInt(amountString)
-  console.log(amount)
+  if (!taskData.value) return
+  const amount = toBigIntAmount(bidAmount.value, Number(taskData.value.token.decimals))
 
-  if (!amount || amount <= 0) {
+  if (amount <= 0n) {
     console.error('Please enter a valid bid amount')
     return
   }
-  const placeBidResponse = await session.backend.applyForTask({taskId:BigInt(id), amount})
+
+  const placeBidResponse = await session.backend.applyForTask({
+    taskId: BigInt(id),
+    amount
+  })
   console.log('Bid placed:', placeBidResponse)
-  
+
   isBidModalOpen.value = false
   bidAmount.value = ''
-
-  console.log('Bid submitted successfully!')
-  // await fetchBids()
 }
-
-const openBidModal = () => {
-  isBidModalOpen.value = true
-}
-
 
 onMounted(async () => {
+  const success = await loadTask(BigInt(id))
 
-  console.log("onMunted")
-  // await fetchBids()
-  let taskResponse = await session.backend.expandTask(BigInt(id))
-  if(taskResponse[0]){
-    taskData.value = taskResponse[0].task
-    bidsDetails.value = taskResponse[0].bidsDetails
-    author.value = taskResponse[0].author
-  } else {
-    console.log("salir del componente")
+  console.log(taskData.value, bidsDetails.value, author.value)
+  if (!success) {
+    console.warn("Task not found, exiting component")
   }
-   
-  isAuthor.value = (author.principal === session.identity.getPrincipal() )
-  console.log(taskResponse)
-
 })
+
+const formatToken = (amount: bigint, decimals: bigint) => {
+  const divisor = 10 ** Number(decimals)
+  return (Number(amount) / divisor).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })
+}
+
+const formatDate = (nanos: bigint) => {
+  const ms = Number(nanos / 1000000n) // convertir nanosegundos a ms
+  return new Date(ms).toLocaleDateString()
+}
+
+
 </script>
+
 
 <template>
 
@@ -84,84 +66,28 @@ onMounted(async () => {
             <img :src="logo5" class="rounded-full size-28 p-4 bg-white dark:bg-slate-900 shadow-sm shadow-gray-200 dark:shadow-gray-700" alt="">
 
             <div class="md:ms-4 md:mt-0 mt-6">
-              <h5 class="text-xl font-semibold">{{ 'Back-End Developer' }}</h5>
+              <h5 class="text-xl font-semibold">{{ taskData?.title }}</h5>
               <div class="mt-2">
-                <span class="text-slate-400 font-medium me-2 inline-block"><i class="uil uil-building text-[18px] text-emerald-600 me-1"></i> {{ 'Lenovo pvt. ltd.' }}</span>
-                <span class="text-slate-400 font-medium me-2 inline-block"><i class="uil uil-map-marker text-[18px] text-emerald-600 me-1"></i> {{ 'Beijing,    China'}}</span>
+                <span class="text-slate-400 font-medium me-2 inline-block"><i class="uil uil-building text-[18px] text-emerald-600 me-1"></i> {{ taskData?.owner.toString() }}</span>
               </div>
             </div>
           </div>
-          <h5 class="text-lg font-semibold">Job Information:</h5>
+          <h5 class="text-lg font-semibold">Tags:</h5>
           <ul class="list-none mt-5 mb-6 ">
-            <li class="inline-flex items-center py-2 px-4 bg-white dark:bg-slate-900 me-2 my-1 shadow-sm shadow-gray-200 dark:shadow-gray-700 rounded-md">
-              <i data-feather="user-check" class="size-5"></i>
-
+            <li v-for="tag in taskData?.keywords" class="inline-flex items-center py-2 px-4 bg-white dark:bg-slate-900 me-2 my-1 shadow-sm shadow-gray-200 dark:shadow-gray-700 rounded-md">
               <div class="ms-4">
-                <p class="font-medium">Employee Type:</p>
-                <span class="text-emerald-600 font-medium text-sm">{{ 'Full Time'}}</span>
+                <span class="text-emerald-600 font-medium text-sm">{{ tag}}</span>
               </div>
             </li>
 
-            <li class="inline-flex items-center py-2 px-4 bg-white dark:bg-slate-900 me-2 my-1 shadow-sm shadow-gray-200 dark:shadow-gray-700 rounded-md">
-              <i data-feather="map-pin" class="size-5"></i>
 
-              <div class="ms-4">
-                <p class="font-medium">Location:</p>
-                <span class="text-emerald-600 font-medium text-sm">{{'Beijing, China'}}</span>
-              </div>
-            </li>
 
-            <li class="inline-flex items-center py-2 px-4 bg-white dark:bg-slate-900 me-2 my-1 shadow-sm shadow-gray-200 dark:shadow-gray-700 rounded-md">
-              <i data-feather="monitor" class="size-5"></i>
-
-              <div class="ms-4">
-                <p class="font-medium">Job Type:</p>
-                <span class="text-emerald-600 font-medium text-sm">{{ 'Back-end Developer'}}</span>
-              </div>
-            </li>
-
-            <li class="inline-flex items-center py-2 px-4 bg-white dark:bg-slate-900 me-2 my-1 shadow-sm shadow-gray-200 dark:shadow-gray-700 rounded-md">
-              <i data-feather="briefcase" class="size-5"></i>
-
-              <div class="ms-4">
-                <p class="font-medium">Experience:</p>
-                <span class="text-emerald-600 font-medium text-sm">2+ years</span>
-              </div>
-            </li>
-
-            <li class="inline-flex items-center py-2 px-4 bg-white dark:bg-slate-900 me-2 my-1 shadow-sm shadow-gray-200 dark:shadow-gray-700 rounded-md">
-              <i data-feather="book" class="size-5"></i>
-
-              <div class="ms-4">
-                <p class="font-medium">Qualifications:</p>
-                <span class="text-emerald-600 font-medium text-sm">MCA</span>
-              </div>
-            </li>
-
-            <li class="inline-flex items-center py-2 px-4 bg-white dark:bg-slate-900 me-2 my-1 shadow-sm shadow-gray-200 dark:shadow-gray-700 rounded-md">
-              <i data-feather="dollar-sign" class="size-5"></i>
-
-              <div class="ms-4">
-                <p class="font-medium">Salary:</p>
-                <span class="text-emerald-600 font-medium text-sm">$4000 - $4500</span>
-              </div>
-            </li>
-
-            <li class="inline-flex items-center py-2 px-4 bg-white dark:bg-slate-900 me-2 my-1 shadow-sm shadow-gray-200 dark:shadow-gray-700 rounded-md">
-              <i data-feather="clock" class="size-5"></i>
-
-              <div class="ms-4">
-                <p class="font-medium">Date posted:</p>
-                <span class="text-emerald-600 font-medium text-sm">28th Feb, 2023</span>
-              </div>
-            </li>
           </ul>
-          <h5 class="text-lg font-semibold">Job Description:</h5>
+          <h5 class="text-lg font-semibold">Task Description:</h5>
           <p></p>
 
-          <p class="text-slate-400 mt-4">One disadvantage of Lorum Ipsum is that in Latin certain letters appear more frequently than others - which creates a distinct visual impression. Moreover, in Latin only words at the beginning of sentences are capitalized.</p>
-          <p class="text-slate-400 mt-4">This means that Lorem Ipsum cannot accurately represent, for example, German, in which all nouns are capitalized. Thus, Lorem Ipsum has only limited suitability as a visual filler for German texts. If the fill text is intended to illustrate the characteristics of different typefaces.</p>
-          <p class="text-slate-400 mt-4">It sometimes makes sense to select texts containing the various letters and symbols specific to the output language.</p>
+          <p class="text-slate-400 mt-4">{{taskData?.description}}</p>
+
 
 
 

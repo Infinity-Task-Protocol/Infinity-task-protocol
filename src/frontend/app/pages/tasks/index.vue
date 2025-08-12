@@ -17,22 +17,30 @@ const printRangeRewards = (task: TaskPreview) => {
 
 onMounted(async () => {
   try {
-    const tasks = (await session.backend.getPaginateTaskPreview({
+    const response = await session.backend.getPaginateTaskPreview({
       page: BigInt(0),
       qtyPerPage: [BigInt(50)]
-    })).arr as TaskPreview[]
-    updatedTasks.value = tasks.map((task, i) => ({
-      ...task,
-      id: task.id.toString(),
-      name: tasks[i]?.title,
-      image: logo5,
-      salary: tasks[i] ? printRangeRewards(tasks[i]) : "",
-      day: "2 days ago",
-      type: "Full Time",
-      time: "1 to 3 months",
-      language: tasks[i]?.keywords,
-      location: "Argentina"
-    }))
+    })
+
+    tasks.value = (response.arr as TaskPreview[]).map(task => {
+      const decimals = Number(task.token.decimals)
+      const minReward = Number(task.rewardRange[0]) / 10 ** decimals
+      const maxReward = Number(task.rewardRange[1]) / 10 ** decimals
+
+      return {
+        id: Number(task.id),
+        owner: task.owner,
+        status: typeof task.status === 'string' ? task.status : Object.keys(task.status)[0],
+        title: task.title,
+        description: task.description,
+        keywords: task.keywords,
+        rewardRange: [minReward, maxReward],
+        token: task.token,
+        createdAt: Number(task.createdAt),
+        bidsCounter: Number(task.bidsCounter)
+      }
+    })
+  console.log(tasks.value)
   } catch (error) {
     console.error('Error al llamar el método de Motoko:', error)
   } finally {
@@ -103,9 +111,9 @@ const goToCreateTask = () => {
           </div>
           
           <!-- Cards -->
-          <div v-else-if="updatedTasks.length" class="grid grid-cols-1 gap-[30px]">
+          <div v-else-if="tasks" class="grid grid-cols-1 gap-[30px]">
             <JobsJobListTaskCard
-            v-for="item in updatedTasks"
+            v-for="item in tasks"
             :key="item.id"
             v-bind="item"
             />
