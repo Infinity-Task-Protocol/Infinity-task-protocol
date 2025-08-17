@@ -134,13 +134,13 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
 
   ///////////////// User functions //////////////////////
 
-  public shared ({ caller }) func signUp({ name : Text }) : async LoginResult {
+  public shared ({ caller }) func signUp({ name : Text/* ; email: Text */}) : async LoginResult {
     if (Principal.isAnonymous(caller)) {
       return #Err("Caller anonymous");
     };
     switch (Map.get<Principal, User>(users, phash, caller)) {
       case null {
-        let newUser = { Types.DefaultUser() with name; principal = caller };
+        let newUser = { Types.DefaultUser() with name; principal = caller/* ; email = ?email */ };
         ignore Map.put<Principal, User>(users, phash, caller, newUser);
         return #Ok({
           user = newUser;
@@ -403,7 +403,7 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
       return #Err("Task is already assigned") 
     };
 
-    if (amount < task.rewardRange.0 and task.rewardRange.1 < amount ){
+    if (amount < task.rewardRange.0 or task.rewardRange.1 < amount ){
       return #Err("Amount offer is out of range");
     };
     print("Applying for task: " # Nat.toText(taskId) # " with amount: " # Nat.toText(amount));
@@ -433,7 +433,7 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
     }
   };
 
-  public shared ({ caller }) func acceptOffer(taskId: Nat, user: Principal): async { #Ok: Ledger.TransferArg; #Err: Text } {
+  public shared ({ caller }) func acceptOffer(taskId: Nat, user: Principal): async { #Ok: {args: Ledger.TransferArg; to_account_id: Blob}; #Err:Text} {
 
     let task: Task = switch (Map.get<Nat ,Task>(activeTasks, nhash, taskId)) {
       case null { return #Err("Task does not exist") };
@@ -443,9 +443,10 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
     if(task.owner != caller ){
       return #Err("Caller is not the task owner");
     };
-    switch(task.assignedTo){
-      case null {};
-      case (_) { return #Err("Task is already assigned") };
+
+    switch(task.status){
+      case (#PaymentDepositDone(_)) { return #Err("The task is already being executed") };
+      case (_) {};
     };
 
     let offerAccepted =  Map.get<Principal, Types.Offer>(task.bids, phash, user);
@@ -464,15 +465,15 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
         };
         ignore Map.put<Nat, Task>(activeTasks, nhash, taskId, updatedTask);
         let transferArg: Ledger.TransferArg = {
-          amount = updatedTask.finalAmount;
+          amount = offer.amount;
           created_at_time = null;
           fee = null;
           from_subaccount = null;
-          memo = updatedTask.memoTransaction;
+          memo = ?newMemo();
           to = {owner = treasuryCanisterId; subaccount = ?"escrows0000000000000000000000000"};
         };
         ignore Map.put<Nat, Ledger.TransferArg>(transferArgsByTask, nhash, taskId, transferArg);
-        return #Ok(transferArg);
+        return #Ok({args = transferArg; to_account_id: Blob = Principal.toLedgerAccount(transferArg.to.owner, transferArg.to.subaccount)});
       }
     } 
   };
@@ -490,7 +491,7 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
     }
   };
 
-  public shared ({ caller }) func paymentNotification(taskId: Nat, index: Nat64, args: Ledger.TransferArg, token: Principal): async {#Err : Text; #Ok : Nat} {
+  public shared ({ caller }) func paymentNotificationOld(taskId: Nat, index: Nat64, args: Ledger.TransferArg, token: Principal): async {#Err : Text; #Ok : Nat} {
     switch (Map.get<Nat ,Task>(activeTasks, nhash, taskId)) {
       case (?task) {
 
@@ -547,6 +548,68 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
     };
   };
 
+  public shared ({ caller }) func paymentNotification({taskId: Nat; blockIndex: Nat64}): async {#Err : Text; #Ok : Nat}{
+    let task = Map.get<Nat, Task>(activeTasks, nhash, taskId);
+    let transferArgs = Map.get<Nat, Ledger.TransferArg>(transferArgsByTask, nhash, taskId);
+    switch ((task, transferArgs)){
+      case ((?task, ?transferArgs)){
+        if (task.owner != caller) { 
+          return #Err("Caller is not the task owner") 
+        };
+        let toValidate = transferArgs.to == {owner = treasuryCanisterId; subaccount = ?"escrows0000000000000000000000000"};
+        let amountValidate = transferArgs.amount == task.finalAmount;
+        if (not toValidate or not amountValidate) {
+          return #Err("Error in trasfer args");
+        };
+        let treasuryCanister = actor(Principal.toText(treasuryCanisterId)): actor {
+          createEscrow: shared (TreasuryTypes.CreateEscrowArgs) -> async {#Ok: Nat; #Err: Text };
+        };
+        let assignedTo = switch (task.assignedTo) {
+          case ( ?user ) { user };
+          case null { return #Err("Not user assigned")}
+        };
+        let escrow = await treasuryCanister.createEscrow({
+          platformFee = calculateFee(transferArgs.amount); 
+          index = blockIndex; 
+          transferArg = transferArgs; 
+          token = task.token.canisterId; 
+          userAssigned = assignedTo;
+        });
+        switch escrow {
+          case (#Ok(_)) { 
+            ignore Map.remove<Nat, Ledger.TransferArg>(transferArgsByTask, nhash, taskId);
+            ignore Map.put<Nat ,Task>(
+              activeTasks, 
+              nhash, 
+              taskId, 
+              { 
+                task with 
+                chatId = ?ChatTypes.getChatId(caller, [assignedTo], ?{id = Nat.toText(taskId); name = "Task"}); 
+                status = #PaymentDepositDone(now())})
+            
+            };
+          case (#Err(_)) { };
+        };
+        // Freelancer push Notification
+        pushNotification(
+          assignedTo,
+          { 
+            date = now();
+            read = false;
+            kind = #DeliveryAccepted(taskId)
+          }
+        );
+        ////////////////////////////////
+        escrow
+      };
+      case (null, _) {
+        #Err("Task not found");
+      };
+      case (_, null ) {
+        #Err("Transfer args not found")
+      }
+    }
+  };
 
   public shared ({ caller }) func deliveryTask({taskId: Nat; description: Text; asset: Types.Asset}): async Bool {
     let task = Map.get<Nat, Task>(activeTasks, nhash, taskId);

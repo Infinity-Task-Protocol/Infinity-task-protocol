@@ -4,6 +4,7 @@ import { n32hash; phash } "mo:map/Map";
 import { now } "mo:base/Time";
 import Array "mo:base/Array";
 import List "mo:base/List";
+import Principal "mo:base/Principal";
 
 shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Types.InitArgs) = this {
 
@@ -64,7 +65,16 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
              }
         };
         ignore Map.put<Principal, [Types.Notification]>(notifications, phash, user, notifUpdate);
-     };
+    };
+
+    func indexOf<P> (u: P, _users: [P], equal: (P, P) -> Bool): ?Nat {
+        var index = 0;
+        for (user in _users.vals()){
+            if (equal(user, u)) { return ?index };
+            index += 1;
+        };
+        null;
+    };
 
     ///////////////// Chat ///////////////////////////////////////////////////
 
@@ -108,6 +118,64 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
             }
         };
     };
+
+    public shared ({ caller = principal }) func putMsgToChat(chatId: Nat32, msgContent: MsgContent): async {#Ok; #Err: Text} {
+        let chat = Map.get<ChatId, Chat>(chats, n32hash, chatId);
+        switch chat {
+            case null { #Err("Chat not found") };
+            case (?chat) {
+                let senderIndex = indexOf<Principal>(
+                    principal,
+                    Array.map<Types.Participant, Principal>(
+                        chat.users, 
+                        func x = x.principal
+                    ), 
+                    Principal.equal          
+                );
+                switch senderIndex {
+                    case null { return #Err("Caller not included in chat") };
+                    case (?senderIndex) {
+                        let msg = {msgContent with date = now(); sender = senderIndex; indexMsg = List.size(chat.msgs); read = false};
+                        let updateMsgs = List.push<Msg>(msg, chat.msgs);
+                        ignore Map.put<ChatId, Chat>(chats, n32hash, chatId, {chat with msgs = updateMsgs});
+                        let sender = {name = chat.users[senderIndex].name; principal};
+                        let notification = {
+                            date = now();
+                            kind = #Msg({ sender with chatId;})
+                        };
+                        let principalUsers = Array.map<{name: Text; principal:Principal}, Principal>(
+                                chat.users, 
+                                func x = x.principal
+                        );
+                        for (user in principalUsers.vals()){
+                            pushNotificationFromChatCanister(user, notification)
+                        };
+                        #Ok
+                    }
+                }   
+            }
+        }
+    };
+
+    // public shared ({ caller }) func readPaginateChat(id: ChatId, page: Nat): async Types.ReadChatResponse{
+    //     let chat = Map.get<ChatId, Chat>(chats, n32hash, id);
+    //     switch chat {
+    //         case null { #Err("Chat not found") };
+    //         case ( ?chat ) {
+    //             if (not callerIncluded(caller, chat.users)) { return #Err("Caller is not included in this chat") };
+    //             if (page == 0){
+    //                 let length = if (List.size(chat.msgs) > 10) { 10 } else { List.size(chat.msgs)};
+    //                 let msgs = Array.subArray<Msg>(chat.msgs, 0, length);
+    //                 let moreMsg = chat.msgs.size() > 10;
+    //                 return #Ok( #Start({msgs; users = chat.users; moreMsg}) )
+    //             } else {
+    //                 let length = if (chat.msgs.size() >= 10 * page + 10) { 10} else { chat.msgs.size() % 10};
+    //                 let msgs = Array.subArray<Msg>(chat.msgs, 10 * page, length);
+    //                 return #Ok( #OnlyMsgs( {msgs; moreMsg = chat.msgs.size() > 10 * page} ) )
+    //             }
+    //         }
+    //     }
+    // };
 
 
 
