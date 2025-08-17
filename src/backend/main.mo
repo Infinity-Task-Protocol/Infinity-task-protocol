@@ -207,13 +207,13 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
     #Ok(updatedUser);
   };
 
-  public shared ({ caller }) func loadAvatar(avatar: ?Blob): async ?User {
+  public shared ({ caller }) func loadAvatar(avatar: ?Blob, thumbnail: ?Blob): async ?User {
     let user = Map.get<Principal, User>(users, phash, caller);
     switch user {
       case null { null };
       case ( ?user ) {
-        ignore Map.put<Principal, User>(users, phash, caller, { user with avatar});
-        ?{ user with avatar }
+        ignore Map.put<Principal, User>(users, phash, caller, { user with avatar; thumbnail});
+        ?{ user with avatar; thumbnail}
       }
     }
   };
