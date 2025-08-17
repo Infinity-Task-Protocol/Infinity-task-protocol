@@ -14,8 +14,6 @@ const session = useSessionStore()
 //Todo Add getAcceptedToken function from Treasury canister
 
 const tokens = await session.treasury.getSupportedTokens()
-console.log(tokens[0])
-console.log(session.user?.principal.toText())
 const router = useRouter()
 
 //const acceptedTokens = session.treasury.getSupportedToken()
@@ -35,10 +33,8 @@ function handleFiles(e: Event) {
     form.value.files = Array.from(input.files)
   }
 }
-const admins = await session.treasury.getSupportedTokens()
 const tokenSelected = ref(0)
 
-console.log(admins)
 async function handleSubmit() {
   
   const assetData = await Promise.all(
@@ -67,7 +63,6 @@ async function handleSubmit() {
 
   const response = await session.backend.createTask(payload)
   await router.push('/tasks')
-  console.log('Task created:', response)
 
 }
 </script>
