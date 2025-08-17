@@ -39,7 +39,7 @@ const handleMakeBid = async () => {
     console.error('Please enter a valid bid amount')
     return
   }
-  const placeBidResponse = await session.backend.applyForTask({taskId:BigInt(id), amount})
+  const placeBidResponse = await session.backend.applyForTask({taskId: BigInt(id), amount})
   console.log('Bid placed:', placeBidResponse)
   
   isBidModalOpen.value = false

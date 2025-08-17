@@ -204,7 +204,7 @@ const displayBids = computed(() => {
 
 // Función para abrir el modal de aceptar
 const openAcceptModal = (bid) => {
-  if (props.hideBids) return // No permitir si están ocultos
+  // if (props.hideBids) return // No permitir si están ocultos
   selectedBid.value = bid
   isAcceptModalOpen.value = true
 }
@@ -216,15 +216,46 @@ const handleAcceptBid = async () => {
   try {
     console.log('Accepting bid:', selectedBid.value)
 
-    const taskId = BigInt(props.task[0]?.task?.id)
+    const taskId = BigInt(props.task.id)
     
     const bidderPrincipal = Principal.fromText(selectedBid.value.id)
-
+    console.log({Principal : selectedBid.value.id})
+    console.log(taskId)
     const response = await session.backend.acceptOffer(taskId, bidderPrincipal)
     console.log(response)
+    // console.log("{task: task}")
     if("Ok" in response){
       isAcceptModalOpen.value = false
       selectedBid.value = null
+      let args = response.Ok.args;
+      const params = {
+        to: "827d788022a863123db4294da0e5d07eb308dd5913860fb0308715dd8fbfd682",
+        amount: 2000000000,
+        memo: "123456789"
+      }
+      console.log(args.args)
+      if(args.to.owner){
+        // args.to = response.Ok.to_account_id
+        args.to = "827d788022a863123db4294da0e5d07eb308dd5913860fb0308715dd8fbfd682"
+      }
+      console.log({accountID: response.Ok.to_account_id})
+      console.log({args: args})
+      console.log({params: params})
+      // console.log({account: params.to})
+      const e = await window.ic.plug.requestConnect(
+        {whitelist: [props.task.token.canisterId.toString()]}
+      )
+      console.log({e})
+    
+      if (await window.ic.plug.isConnected()) {
+        try {
+          transferStatus = await window.ic.plug.requestTransfer(params)
+          console.log({transferStatus})
+        } catch (transferError) {
+          console.error("Error en la transferencia:", transferError)
+          transferStatus = undefined
+        }
+      }
       console.log("refrescar la vista como si props.task[0]?.task.status estuviera en #AcceptedOffer")
     } else {
       console.log("Este flujo quedaria deshabilitado debido al renderizado condicional vinculado a task.status")
