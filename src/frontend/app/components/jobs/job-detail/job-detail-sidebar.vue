@@ -6,9 +6,8 @@
 
         <!-- Contenedor de bids con blur condicional -->
         <div
-            class="max-h-80 overflow-y-auto space-y-4 pr-2 relative transition-all duration-300"
+            class="max-h-80 overflow-y-auto space-y-4 pr-2 relative transition-all duration-300 blur-md"
             :class="{
-            [blurClass]: hideBids,
             'pointer-events-none': hideBids,
             'blur-none pointer-events-auto': !hideBids
           }"
@@ -50,7 +49,7 @@
 
         <!-- Overlay con mensaje cuando está oculto -->
         <div
-            v-if="hideBids && showOverlay"
+            v-if="hideBids"
             class="absolute inset-0 flex items-center justify-center bg-white/20 dark:bg-slate-900/20 backdrop-blur-sm rounded-lg"
         >
           <div class="text-center p-4">
@@ -139,54 +138,34 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { Principal } from '@dfinity/principal'
+
+import type { TaskExpand } from 'declarations/backend/backend.did'
+import type { Offer } from 'declarations/backend/backend.did'
 
 const session = useSessionStore()
 
 // Estados del modal
 const isAcceptModalOpen = ref(false)
-const selectedBid = ref(null)
+const selectedBid = ref<DisplayBid| null>(null)
 
-const id = ref('')
-const data = ref(null)
-
+type DisplayBid = {
+  id: string
+  image: string
+  name: string
+  amount: number
+  tokenName: string | undefined
+}
 
 // Props del componente
-const props = defineProps({
-  task: {
-    type: Object,
-    default: () => []
-  },
-  bids: {
-    type: Array,
-    default: () => []
-  },
-  hideBids: {
-    type: Boolean,
-    default: true
-  },
-  blurIntensity: {
-    type: String,
-    default: 'sm', // sm, md, lg, xl, 2xl, 3xl
-    validator: (value) => ['none', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'].includes(value)
-  },
-  showOverlay: {
-    type: Boolean,
-    default: true
-  },
-  overlayMessage: {
-    type: String,
-    default: ''
-  }
-})
-
-// Computed para generar la clase de blur dinámicamente
-const blurClass = computed(() => {
-  if (props.blurIntensity === 'none') return 'blur-none'
-  return `blur-${props.blurIntensity}`
-})
+const props = defineProps<{
+  task: TaskExpand | null
+  bids: Array<[Principal, Offer]>   
+  hideBids?: boolean
+  overlayMessage?: string
+}>()
 
 
 const displayBids = computed(() => {
@@ -195,15 +174,15 @@ const displayBids = computed(() => {
       id: principal.toText(),
       image: 'https://api.dicebear.com/7.x/identicon/svg?seed=' + principal.toText(),
       name: principal.toText().slice(0, 10) + '...',
-      amount: Number(offer.amount) / 10 ** Number(props.task.token.decimals),
-      tokenName: props.task.token.symbol,
+      amount: Number(offer.amount) / 10 ** Number(props.task?.token.decimals),
+      tokenName: props.task?.token.symbol,
     }
   })
 })
 
 
 // Función para abrir el modal de aceptar
-const openAcceptModal = (bid) => {
+const openAcceptModal = (bid: DisplayBid) => {
   if (props.hideBids) return // No permitir si están ocultos
   selectedBid.value = bid
   isAcceptModalOpen.value = true
@@ -216,7 +195,10 @@ const handleAcceptBid = async () => {
   try {
     console.log('Accepting bid:', selectedBid.value)
 
-    const taskId = BigInt(props.task[0]?.task?.id)
+    if (!props.task?.id) {
+      throw new Error('Task ID is undefined')
+    }
+    const taskId = BigInt(props.task?.id)
     
     const bidderPrincipal = Principal.fromText(selectedBid.value.id)
 
