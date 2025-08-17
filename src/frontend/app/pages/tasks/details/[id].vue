@@ -2,8 +2,9 @@
 import logo5 from '@/assets/images/company/spotify.png'
 import { toBigIntAmount } from '@/utils/token'
 import { useTask } from '@/composables/useTask'
+import { blobToImageUrl } from "@/utils/imageManager"
 
-const { id } = useRoute().params
+const id = useRouteId('id')
 const session = useSessionStore()
 
 const { taskData, bidsDetails, author, isAuthor, loadTask } = useTask()
@@ -15,15 +16,15 @@ const openBidModal = () => { isBidModalOpen.value = true }
 
 const handleMakeBid = async () => {
   if (!taskData.value) return
-  const amount = toBigIntAmount(bidAmount.value, Number(taskData.value.token.decimals))
-
+  const amount = toBigIntAmount(String(bidAmount.value), Number(taskData.value.token.decimals))
+  console.log('Bid amount:', amount)
   if (amount <= 0n) {
     console.error('Please enter a valid bid amount')
     return
   }
 
   const placeBidResponse = await session.backend.applyForTask({
-    taskId: BigInt(id),
+    taskId: BigInt(id!),
     amount
   })
   console.log('Bid placed:', placeBidResponse)
@@ -33,15 +34,17 @@ const handleMakeBid = async () => {
 }
 
 onMounted(async () => {
+  if (!id) {
+    console.warn("No task ID found in route params")
+    return
+  }
   const success = await loadTask(BigInt(id))
-
-  console.log(taskData.value, bidsDetails.value, author.value)
   if (!success) {
     console.warn("Task not found, exiting component")
   }
 })
 
-const formatToken = (amount: bigint, decimals: bigint) => {
+const formatToken = (amount: BigInt, decimals: bigint) => {
   const divisor = 10 ** Number(decimals)
   return (Number(amount) / divisor).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 })
 }
@@ -51,7 +54,10 @@ const formatDate = (nanos: bigint) => {
   return new Date(ms).toLocaleDateString()
 }
 
-
+const blobToImage = (image: number[], _default: string | null)  => {
+  console.log("user avatar ", image)
+  return image ? blobToImageUrl(image) : _default;
+}
 </script>
 
 
@@ -63,12 +69,12 @@ const formatDate = (nanos: bigint) => {
         <div class="lg:col-span-8 md:col-span-6 ">
 
           <div class="md:flex items-center p-6 shadow-sm shadow-gray-200 dark:shadow-gray-700 rounded-md bg-white dark:bg-slate-900 mb-6">
-            <img :src="logo5" class="rounded-full size-28 p-4 bg-white dark:bg-slate-900 shadow-sm shadow-gray-200 dark:shadow-gray-700" alt="">
+            <!-- <img :src="blobToImage(author?.avatar,) as string" class="rounded-full size-28 p-4 bg-white dark:bg-slate-900 shadow-sm shadow-gray-200 dark:shadow-gray-700" alt=""> -->
 
             <div class="md:ms-4 md:mt-0 mt-6">
               <h5 class="text-xl font-semibold">{{ taskData?.title }}</h5>
               <div class="mt-2">
-                <span class="text-slate-400 font-medium me-2 inline-block"><i class="uil uil-building text-[18px] text-emerald-600 me-1"></i> {{ taskData?.owner.toString() }}</span>
+                <span class="text-slate-400 font-medium me-2 inline-block"><i class="uil uil-building text-[18px] text-emerald-600 me-1"></i> {{ author?.name }}</span>
               </div>
             </div>
           </div>
@@ -125,7 +131,7 @@ const formatDate = (nanos: bigint) => {
             />
           </div>
           <div class="text-sm text-gray-500 dark:text-gray-400">
-            <p>Current salary range: $4000 - $4500</p>
+            <p>Current payment range for this task: {{ formatToken(taskData?.rewardRange[0]!, taskData?.token.decimals!) }} - {{ formatToken(taskData?.rewardRange[1]!, taskData?.token.decimals!) }} {{ taskData?.token.symbol }}</p>
             <p>Make sure your bid is competitive and realistic.</p>
           </div>
         </div>
