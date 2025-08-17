@@ -1,28 +1,34 @@
-import type { TaskExpandResponse } from '../../../declarations/backend/backend.did'
+import type { TaskExpandResponse } from 'declarations/backend/backend.did'
+import type { Opt } from '@/utils/types'
 
 export function useTask() {
-    const session = useSessionStore()
-    const taskData = ref(null)
-    const bidsDetails = ref(null)
-    const author = ref(null)
-    const isAuthor = ref(false)
+  const session = useSessionStore()
+  const taskData = ref<TaskExpandResponse['task'] | null>(null)
+  const bidsDetails = ref<TaskExpandResponse['bidsDetails'] | null>(null)
+  const author = ref<TaskExpandResponse['author'] | null>(null)
+  const isAuthor = ref(false)
 
-    const loadTask = async (taskId: bigint) => {
-        const taskResponse = await session.backend.expandTask(taskId) as TaskExpandResponse
-        if (!taskResponse[0]) return false
+  const loadTask = async (taskId: bigint) => {
+    console.log('Loading task:', taskId)
+    const taskResponse: Opt<TaskExpandResponse> = await session.backend.expandTask(taskId)
+    console.log('Task response:', taskResponse)
+    if (taskResponse.length === 0) return false
 
-        taskData.value = taskResponse[0].task
-        bidsDetails.value = taskResponse[0].bidsDetails
-        author.value = taskResponse[0].author
-        isAuthor.value = taskResponse[0].author.principal.toString() === session.user.principal.toString()
-        return true
-    }
+    const { task, bidsDetails: bids, author: auth } = taskResponse[0]
 
-    return {
-        taskData,
-        bidsDetails,
-        author,
-        isAuthor,
-        loadTask
-    }
+    taskData.value = task
+    bidsDetails.value = bids
+    author.value = auth
+    isAuthor.value = auth.principal.toString() === session.user?.principal.toString()
+
+    return true
+  }
+
+  return {
+    taskData,
+    bidsDetails,
+    author,
+    isAuthor,
+    loadTask,
+  }
 }
