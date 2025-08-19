@@ -11,6 +11,8 @@ import Nat "mo:base/Nat";
 import Text "mo:base/Text";
 import Iter "mo:base/Iter";
 import LedgerTypes "../interfaces/ICP_Token/ledger_icp";
+import { print } "mo:base/Debug";
+import Utils "../backend/utils";
 
 
 shared ({caller = superAdmin}) persistent actor class Treasury(initArgs: Types.InitArgs) = this {
@@ -167,13 +169,12 @@ shared ({caller = superAdmin}) persistent actor class Treasury(initArgs: Types.I
 
     func verifyTransaction(args: LedgerTypes.TransferArg, blocks: [LedgerTypes.CandidBlock]): Bool {
         for ({ transaction } in blocks.vals()){
-            let memo = transaction.icrc1_memo;
             switch (transaction.operation){
                 case (? #Transfer(t)) {
                     let toVerified = t.to == Principal.toLedgerAccount(args.to.owner, args.to.subaccount);
                     let amountVerified = t.amount == {e8s = Nat64.fromNat(args.amount)};
-                    let memoVerified = memo == args.memo;
-                    if (toVerified and amountVerified and memoVerified){
+                    let created_at_time_verified = ?transaction.created_at_time.timestamp_nanos == args.created_at_time;
+                    if (toVerified and amountVerified and created_at_time_verified){
                         return true
                     };       
                 };

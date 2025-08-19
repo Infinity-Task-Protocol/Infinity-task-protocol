@@ -150,15 +150,27 @@ dfx identity use 0000TaskOwner
 dfx canister call backend acceptOffer "(1, principal \"${Freelancer1}\")"
 
 
-output=$(dfx canister call backend getTransferArgForTask 1)
+output=$(dfx canister call backend getTransferArgsForTask 1)
 
-# Paso 1: eliminar la primera y última línea
 trimmed=$(echo "$output" | sed '1d;$d')
 
-# Paso 2: eliminar la palabra "opt" y la coma final si está en esa línea
-cleaned=$(echo "$trimmed" | sed 's/^[[:space:]]*opt[[:space:]]*//; s/,[[:space:]]*$//')
+# Paso 2: extraer TODO lo que está entre 'icp = record {' y 'icrc2 = record {'
+icp_block=$(echo "$trimmed" | sed -n '/icp = record {/,/icrc2 = record {/p')
 
-blockIndex=$(dfx canister call icp_ledger icrc1_transfer "($cleaned)" | sed -n 's/.*Ok = \([0-9_]*\) :.*/\1/p')
+# Paso 3: eliminar la última línea (que contiene 'icrc2 = record {')
+icp_block=$(echo "$icp_block" | sed '$d')
+
+# Paso 4: quitar el prefijo "icp = " de la primera línea
+icp_block=$(echo "$icp_block" | sed '1s/^[[:space:]]*icp = //')
+
+# Paso 5: reemplazar SOLO el último '};' por '}'
+icp_clean=$(echo "$icp_block" | sed '${s/};$/}/}')
+
+echo "$icp_clean"
+
+# Paso 4: ejecutar transferencia
+blockIndex=$(dfx canister call icp_ledger transfer "($icp_clean)" \
+  | sed -n 's/.*Ok = \([0-9_]*\) :.*/\1/p')
 
 dfx canister call backend paymentNotification "(
   record {taskId = 1; blockIndex = $blockIndex}

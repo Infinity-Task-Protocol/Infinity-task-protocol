@@ -11,12 +11,14 @@ import Nat64 "mo:base/Nat64";
 import Blob "mo:base/Blob";
 import Nat "mo:base/Nat";
 import Text "mo:base/Text";
+import Int "mo:base/Int";
 import Ledger "../interfaces/ICP_Token/ledger_icp";
 // import icrc2 "../interfaces/icrc2";
 import TreasuryTypes "../treasury/types";
 import ChatTypes "../chat/types";
+import Utils "./utils";
 
-shared ({caller = DEPLOYER}) persistent actor  class() {
+shared ({ caller = DEPLOYER }) persistent actor class () {
 
   type User = Types.User;
   type UserUpdatableData = Types.UserUpdatableData;
@@ -39,7 +41,7 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
   //////////////// Temporal Variables //////////////////////
 
   transient let verificationCodes = Map.new<Principal, Nat>();
-  let transferArgsByTask = Map.new<Nat, Ledger.TransferArg>();
+  let transferArgsByTask = Map.new<Nat, AcceptOfferResponse>();
   //////////////// Platform Variables //////////////////////
 
   var platformFee: TreasuryTypes.PlatformFee = {
@@ -75,11 +77,11 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
     if (not isAdmin(p)){
       admins := Array.tabulate<Principal>(
         admins.size() + 1,
-        func a = if(a < admins.size()) {admins[a]} else {p}
+        func a = if (a < admins.size()) { admins[a] } else { p },
       );
-      return #Ok
+      return #Ok;
     };
-    #Err
+    #Err;
   };
 
   public shared ({ caller }) func setPlatformFee({fixedPart: Nat; amountPermile: Nat}): async {#Ok; #Err: Text} {
@@ -140,13 +142,16 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
     };
     switch (Map.get<Principal, User>(users, phash, caller)) {
       case null {
-        let newUser = { Types.DefaultUser() with name; principal = caller/* ; email = ?email */ };
+        let newUser = {
+          Types.DefaultUser() with name;
+          principal = caller /* ; email = ?email */;
+        };
         ignore Map.put<Principal, User>(users, phash, caller, newUser);
         return #Ok({
           user = newUser;
           notifications = [];
           msgs = [];
-          certificates = []; 
+          certificates = [];
         });
       };
       case (?user) {
@@ -157,7 +162,7 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
           certificates = switch (Map.get<Principal, [Types.Certificate]>(certificates, phash, caller)){
             case null [];
             case (?c) c;
-          }
+          };
         });
       };
     };
@@ -174,7 +179,7 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
           certificates = switch (Map.get<Principal, [Types.Certificate]>(certificates, phash, caller)){
             case null [];
             case (?c) c;
-          }
+          };
         });
       };
     };
@@ -188,7 +193,17 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
       case null { return #Err("User not found") };
       case (?user) { user };
     };
-    let { name; email; avatar; thumbnail; position; skills; bio; socialLinks; coverImage } = data;
+    let {
+      name;
+      email;
+      avatar;
+      thumbnail;
+      position;
+      skills;
+      bio;
+      socialLinks;
+      coverImage;
+    } = data;
     let verified = (user.email == email) and (email != null); // En caso de que el usuario modifique su email tendrá que verificarlo nuevamente
     let updatedUser = {
       user with
@@ -201,7 +216,7 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
       bio = switch (bio) { case null user.bio; case (b) b };
       coverImage;
       socialLinks;
-      skills; 
+      skills;
     };
     ignore Map.put<Principal, User>(users, phash, caller, updatedUser);
     #Ok(updatedUser);
@@ -211,51 +226,51 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
     let user = Map.get<Principal, User>(users, phash, caller);
     switch user {
       case null { null };
-      case ( ?user ) {
-        ignore Map.put<Principal, User>(users, phash, caller, { user with avatar; thumbnail});
-        ?{ user with avatar; thumbnail}
-      }
-    }
+      case (?user) {
+        ignore Map.put<Principal, User>(users, phash, caller, { user with avatar; thumbnail });
+        ?{ user with avatar; thumbnail };
+      };
+    };
   };
 
-  public shared ({ caller }) func getVerificationCode(): async ?Nat {
-    switch (Map.get<Principal, User>(users, phash, caller)){ 
-      case null {return null};
-      case ( _ ) {
+  public shared ({ caller }) func getVerificationCode() : async ?Nat {
+    switch (Map.get<Principal, User>(users, phash, caller)) {
+      case null { return null };
+      case (_) {
         rand.setRange(100000, 999999);
         let code = await rand.next();
         ignore Map.put<Principal, Nat>(verificationCodes, phash, caller, code);
         ?code;
-      }
-    }
+      };
+    };
   };
 
-  public shared ({ caller }) func enterCodeVerification(code: Nat): async Bool {
-    switch (Map.get<Principal, User>(users, phash, caller)){
+  public shared ({ caller }) func enterCodeVerification(code : Nat) : async Bool {
+    switch (Map.get<Principal, User>(users, phash, caller)) {
       case null false;
       case (?user) {
-        if(verifyCode(caller, code)) {
+        if (verifyCode(caller, code)) {
           ignore Map.put<Principal, User>(users, phash, caller, { user with verified = true });
-          true
+          true;
         } else {
-          false
-        }
-      }
-    }
+          false;
+        };
+      };
+    };
   };
 
   /////////////////// Public functions //////////////////////
 
-  public shared ({ caller }) func getUser(u: Principal): async ?User {
-    assert(isAdmin(caller));
-    Map.get<Principal, User>(users, phash, u)
+  public shared ({ caller }) func getUser(u : Principal) : async ?User {
+    assert (isAdmin(caller));
+    Map.get<Principal, User>(users, phash, u);
   };
 
-  public shared func getCertifiesByPrincipal(p: Principal): async [Types.Certificate]{
-    switch(Map.get<Principal, [Types.Certificate]>(certificates, phash, p)){
+  public shared func getCertifiesByPrincipal(p : Principal) : async [Types.Certificate] {
+    switch (Map.get<Principal, [Types.Certificate]>(certificates, phash, p)) {
       case null [];
-      case (?c) {c}
-    }
+      case (?c) { c };
+    };
   };
 
   ///////////////// Crud Tasks //////////////////
@@ -271,11 +286,11 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
         user;
       };
     };
-    let { description; keywords; rewardRange; title; assets} = data;
+    let { description; keywords; rewardRange; title; assets } = data;
 
     lastTaskId += 1;
 
-    let newTask: Task = {
+    let newTask : Task = {
       Types.defaultTask() with
       owner = caller;
       id = lastTaskId;
@@ -293,10 +308,12 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
       user with
       tasks = Array.tabulate<Nat>(
         user.tasks.size() + 1,
-        func(i) { if (i == user.tasks.size()) { lastTaskId } else { user.tasks[i] } }
+        func(i) {
+          if (i == user.tasks.size()) { lastTaskId } else { user.tasks[i] };
+        },
       )
     };
-    ignore Map.put<Principal, User>( users, phash, caller, updatedUser);
+    ignore Map.put<Principal, User>(users, phash, caller, updatedUser);
     return #Ok(newTask.id);
   };
 
@@ -330,35 +347,37 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
   public shared query ({caller}) func expandTask(id : Nat) : async ?TaskExpandResponse {
     switch (Map.get<Nat, Task>(activeTasks, nhash, id)) {
       case null null;
-      case ( ?task ) {
-        let user = switch (Map.get<Principal, User>(users, phash, task.owner)){
-          case null {return null};
+      case (?task) {
+        let user = switch (Map.get<Principal, User>(users, phash, task.owner)) {
+          case null { return null };
           case (?user) user;
         };
         let bidsCounter = Map.size(task.bids);
-        let bidsDetails = if(caller == task.owner){Map.toArray(task.bids)} else {[]};
-        return ?{task = {task with bidsCounter};  author = user; bidsDetails};
-      }
+        let bidsDetails = if (caller == task.owner) { Map.toArray(task.bids) } else {
+          [];
+        };
+        return ?{ task = { task with bidsCounter }; author = user; bidsDetails };
+      };
     };
   };
 
   public shared ({ caller }) func updateTask({id : Nat; data: Types.UpdatableDataTask}) : async { #Ok; #Err: Text } {
     let task = Map.get<Nat, Task>(activeTasks, nhash, id);
-    let {title; description; rewardRange} = data;
+    let { title; description; rewardRange } = data;
     switch task {
       case null { return #Err("Task Id not found") };
       case (?task) {
         if (task.owner != caller or task.assignedTo != null) {
           return #Err("Caller is not owner");
         };
-        if (Map.size(task.bids) > 0){
+        if (Map.size(task.bids) > 0) {
           return #Err("Task with pending bids cannot be updated");
         };
         let updatedTask: Task = {
           task with
           title;
           description;
-          rewardRange
+          rewardRange;
         };
         ignore Map.put<Nat, Task>(activeTasks, nhash, id, updatedTask);
         return #Ok;
@@ -366,20 +385,20 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
     };
   };
 
-  public shared ({ caller }) func deleteTask(id: Nat): async {#Ok; #Err} {
+  public shared ({ caller }) func deleteTask(id : Nat) : async { #Ok; #Err } {
     let task = Map.remove<Nat, Task>(activeTasks, nhash, id);
     switch task {
       case null { return #Err };
-      case ( ?t ) {
+      case (?t) {
         if (t.owner != caller or t.assignedTo != null) {
-          ignore Map.put<Nat, Task>( activeTasks,  nhash,  id, t );
-          #Err 
+          ignore Map.put<Nat, Task>(activeTasks, nhash, id, t);
+          #Err;
         } else {
-          ignore Map.put<Nat, Task>( archivedTasks,  nhash,  id, t );
+          ignore Map.put<Nat, Task>(archivedTasks, nhash, id, t);
           #Ok;
-        }
-      }
-    }
+        };
+      };
+    };
   };
 
   ////////////////////////////////////////////////////////////
@@ -387,41 +406,41 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
   public shared ({ caller }) func applyForTask({taskId: Nat; amount: Nat}): async {#Ok; #Err: Text}{
     let user = switch(Map.get<Principal, User>(users, phash, caller)){
       case null { return #Err("Caller is not User") };
-      case (?user) { user }; 
+      case (?user) { user };
     };
 
-    if(not user.verified) { return #Err("User is not verified") };
+    if (not user.verified) { return #Err("User is not verified") };
 
-    let task: Task = switch (Map.get<Nat ,Task>(activeTasks, nhash, taskId)) {
+    let task : Task = switch (Map.get<Nat, Task>(activeTasks, nhash, taskId)) {
       case null { return #Err("Task does not exist") };
       case (?task) { task };
     };
 
     if (caller == task.owner) { return #Err("Cannot apply for own task") };
 
-    if (task.assignedTo != null) { 
-      return #Err("Task is already assigned") 
+    if (task.assignedTo != null) {
+      return #Err("Task is already assigned");
     };
 
-    if (amount < task.rewardRange.0 or task.rewardRange.1 < amount ){
+    if (amount < task.rewardRange.0 or task.rewardRange.1 < amount) {
       return #Err("Amount offer is out of range");
     };
     print("Applying for task: " # Nat.toText(taskId) # " with amount: " # Nat.toText(amount));
-    ignore Map.put<Principal, Types.Offer>(task.bids, phash, caller, {user with date = now(); amount });
+    ignore Map.put<Principal, Types.Offer>(task.bids, phash, caller, { user with date = now(); amount });
     ////// Task Owner Push Notification ///////
     pushNotification(
       task.owner,
-      { 
+      {
         date = now();
         read = false;
         kind = #NewBid(taskId);
-      }
+      },
     );
     ////////////////////////////////
     #Ok;
   };
 
-  public shared query ({ caller }) func getBids(taskId: Nat): async BidsResult {
+  public shared query ({ caller }) func getBids(taskId : Nat) : async BidsResult {
     switch (Map.get<Nat, Task>(activeTasks, nhash, taskId)) {
       case null {
         return #taskNotFound;
@@ -430,201 +449,255 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
         if (caller != task.owner) return #unauthorized;
         return #Ok(Map.toArray<Principal, Types.Offer>(task.bids));
       };
-    }
+    };
   };
 
-  public shared ({ caller }) func acceptOffer(taskId: Nat, user: Principal): async { #Ok: {args: Ledger.TransferArg; to_account_id: Blob}; #Err:Text} {
+  type AcceptOfferResponse = {
+    #TransactionArgs : {
+      icp : Ledger.TransferArgs;
+      icrc2 : Ledger.TransferArg;
+    };
+    #Err : Text;
+  };
 
-    let task: Task = switch (Map.get<Nat ,Task>(activeTasks, nhash, taskId)) {
+  public shared ({ caller }) func acceptOffer(taskId : Nat, user : Principal) : async AcceptOfferResponse {
+
+    let task : Task = switch (Map.get<Nat, Task>(activeTasks, nhash, taskId)) {
       case null { return #Err("Task does not exist") };
       case (?task) { task };
     };
 
-    if(task.owner != caller ){
+    if (task.owner != caller) {
       return #Err("Caller is not the task owner");
     };
 
-    switch(task.status){
-      case (#PaymentDepositDone(_)) { return #Err("The task is already being executed") };
+    switch (task.status) {
+      case (#PaymentDepositDone(_)) {
+        return #Err("The task is already being executed");
+      };
       case (_) {};
     };
 
-    let offerAccepted =  Map.get<Principal, Types.Offer>(task.bids, phash, user);
+    let offerAccepted = Map.get<Principal, Types.Offer>(task.bids, phash, user);
     switch offerAccepted {
-      case null { 
-        return #Err ("User has not made an offer") 
+      case null {
+        return #Err("User has not made an offer");
       };
-      case ( ?offer ) {
-        let updatedTask: Task = {
+      case (?offer) {
+        let memo = newMemo();
+        let updatedTask : Task = {
           task with
           assignedTo = ?user;
           status = #AcceptedOffer(now());
           finalAmount = offer.amount;
           start = ?now();
-          memoTransaction = ?newMemo();
+          memoTransaction = ?memo.blob;
         };
         ignore Map.put<Nat, Task>(activeTasks, nhash, taskId, updatedTask);
-        let transferArg: Ledger.TransferArg = {
-          amount = offer.amount;
-          created_at_time = null;
-          fee = null;
-          from_subaccount = null;
-          memo = ?newMemo();
-          to = {owner = treasuryCanisterId; subaccount = ?"escrows0000000000000000000000000"};
-        };
-        ignore Map.put<Nat, Ledger.TransferArg>(transferArgsByTask, nhash, taskId, transferArg);
-        return #Ok({args = transferArg; to_account_id: Blob = Principal.toLedgerAccount(transferArg.to.owner, transferArg.to.subaccount)});
-      }
-    } 
+
+        let transactionArgs : AcceptOfferResponse = #TransactionArgs({ 
+          icp = {
+            amount = { e8s = Nat64.fromNat(offer.amount) };
+            created_at_time = ?{timestamp_nanos = Nat64.fromNat(Int.abs(now()))};
+            fee = { e8s = Nat64.fromNat(task.token.fee) };
+            from_subaccount = null;
+            memo = memo.nat64;
+            to : Blob = Principal.toLedgerAccount((treasuryCanisterId, ?"escrows0000000000000000000000000"));
+          };
+          icrc2 = {
+            amount = offer.amount;
+            created_at_time = ?Nat64.fromNat(Int.abs(now()));
+            fee = ?task.token.fee;
+            from_subaccount = null;
+            memo = ?memo.blob;
+            to = {
+              owner = treasuryCanisterId;
+              subaccount = ?"escrows0000000000000000000000000";
+            };
+          }}
+        );
+        ignore Map.put<Nat, AcceptOfferResponse>(transferArgsByTask, nhash, taskId, transactionArgs);
+        transactionArgs;
+      };
+    };
   };
 
-  public shared ({ caller }) func getTransferArgForTask(id: Nat): async ?Ledger.TransferArg {
-    switch(Map.get<Nat, Task>(activeTasks, nhash, id)) {
+  public shared ({ caller }) func getTransferArgsForTask(id : Nat) : async ?AcceptOfferResponse {
+    switch (Map.get<Nat, Task>(activeTasks, nhash, id)) {
       case null { null };
-      case ( ?task ) {
+      case (?task) {
         if (caller != task.owner and not isAdmin(caller)) {
-          null
+          null;
         } else {
-          Map.get<Nat, Ledger.TransferArg>(transferArgsByTask, nhash, id)
-        }
-      }
-    }
+          Map.get<Nat, AcceptOfferResponse>(transferArgsByTask, nhash, id);
+        };
+      };
+    };
   };
 
-  public shared ({ caller }) func paymentNotificationOld(taskId: Nat, index: Nat64, args: Ledger.TransferArg, token: Principal): async {#Err : Text; #Ok : Nat} {
-    switch (Map.get<Nat ,Task>(activeTasks, nhash, taskId)) {
+  public shared ({ caller }) func paymentNotificationOld(taskId : Nat, index : Nat64, args : Ledger.TransferArg, token : Principal) : async {
+    #Err : Text;
+    #Ok : Nat;
+  } {
+    switch (Map.get<Nat, Task>(activeTasks, nhash, taskId)) {
       case (?task) {
 
-        if (task.owner != caller) { 
-          return #Err("Caller is not the task owner") 
+        if (task.owner != caller) {
+          return #Err("Caller is not the task owner");
         };
-        let toValidate = args.to == {owner = treasuryCanisterId; subaccount = ?"escrows0000000000000000000000000"};
+        let toValidate = args.to == {
+          owner = treasuryCanisterId;
+          subaccount = ?"escrows0000000000000000000000000";
+        };
         let amountValidate = args.amount == task.finalAmount;
         if (not toValidate or not amountValidate) {
           return #Err("Error in trasfer args");
         };
         let userAssigned = switch (task.assignedTo) {
           case null { return #Err("Task not assigned") };
-          case ( ?u ) { u };
+          case (?u) { u };
         };
-        let treasuryCanister = actor(Principal.toText(treasuryCanisterId)): actor {
-          createEscrow: shared (TreasuryTypes.CreateEscrowArgs) -> async {#Ok: Nat; #Err: Text };
+        let treasuryCanister = actor (Principal.toText(treasuryCanisterId)) : actor {
+          createEscrow : shared (TreasuryTypes.CreateEscrowArgs) -> async {
+            #Ok : Nat;
+            #Err : Text;
+          };
         };
         let escrow = await treasuryCanister.createEscrow({
-          platformFee = calculateFee(args.amount); 
-          index; 
-          transferArg = args; 
-          token; userAssigned
+          platformFee = calculateFee(args.amount);
+          index;
+          transferArg = args;
+          token;
+          userAssigned;
         });
 
         switch escrow {
-          case (#Ok(_)) { 
-            ignore Map.remove<Nat, Ledger.TransferArg>(transferArgsByTask, nhash, taskId);
-            ignore Map.put<Nat ,Task>(
-              activeTasks, 
-              nhash, 
-              taskId, 
-              { 
-                task with 
-                chatId = ?ChatTypes.getChatId(caller, [userAssigned], ?{id = Nat.toText(taskId); name = "Task"}); 
-                status = #PaymentDepositDone(now())})
-            
-            };
-          case (#Err(_)) { };
+          case (#Ok(_)) {
+            ignore Map.remove<Nat, AcceptOfferResponse>(transferArgsByTask, nhash, taskId);
+            ignore Map.put<Nat, Task>(
+              activeTasks,
+              nhash,
+              taskId,
+              {
+                task with
+                chatId = ?ChatTypes.getChatId(caller, [userAssigned], ?{ id = Nat.toText(taskId); name = "Task" });
+                status = #PaymentDepositDone(now());
+              },
+            )
+
+          };
+          case (#Err(_)) {};
         };
         // Freelancer push Notification
         pushNotification(
           userAssigned,
-          { 
+          {
             date = now();
             read = false;
-            kind = #DeliveryAccepted(taskId)
-          }
+            kind = #DeliveryAccepted(taskId);
+          },
         );
         ////////////////////////////////
-        escrow
+        escrow;
       };
       case _ { return #Err("Task not found") };
     };
   };
 
-  public shared ({ caller }) func paymentNotification({taskId: Nat; blockIndex: Nat64}): async {#Err : Text; #Ok : Nat}{
+  public shared ({ caller }) func paymentNotification({taskId : Nat; blockIndex : Nat64}) : async { #Err : Text; #Ok : Nat } {
     let task = Map.get<Nat, Task>(activeTasks, nhash, taskId);
-    let transferArgs = Map.get<Nat, Ledger.TransferArg>(transferArgsByTask, nhash, taskId);
-    switch ((task, transferArgs)){
-      case ((?task, ?transferArgs)){
-        if (task.owner != caller) { 
-          return #Err("Caller is not the task owner") 
+    let acceptedOfferResponse = Map.get<Nat, AcceptOfferResponse>(transferArgsByTask, nhash, taskId);
+
+    switch ((task, acceptedOfferResponse)) {
+      case ((?task, ?acceptedOfferResponse)) {
+        if (task.owner != caller) {
+          return #Err("Caller is not the task owner");
         };
-        let toValidate = transferArgs.to == {owner = treasuryCanisterId; subaccount = ?"escrows0000000000000000000000000"};
-        let amountValidate = transferArgs.amount == task.finalAmount;
-        if (not toValidate or not amountValidate) {
-          return #Err("Error in trasfer args");
-        };
-        let treasuryCanister = actor(Principal.toText(treasuryCanisterId)): actor {
-          createEscrow: shared (TreasuryTypes.CreateEscrowArgs) -> async {#Ok: Nat; #Err: Text };
-        };
-        let assignedTo = switch (task.assignedTo) {
-          case ( ?user ) { user };
-          case null { return #Err("Not user assigned")}
-        };
-        let escrow = await treasuryCanister.createEscrow({
-          platformFee = calculateFee(transferArgs.amount); 
-          index = blockIndex; 
-          transferArg = transferArgs; 
-          token = task.token.canisterId; 
-          userAssigned = assignedTo;
-        });
-        switch escrow {
-          case (#Ok(_)) { 
-            ignore Map.remove<Nat, Ledger.TransferArg>(transferArgsByTask, nhash, taskId);
-            ignore Map.put<Nat ,Task>(
-              activeTasks, 
-              nhash, 
-              taskId, 
-              { 
-                task with 
-                chatId = ?ChatTypes.getChatId(caller, [assignedTo], ?{id = Nat.toText(taskId); name = "Task"}); 
-                status = #PaymentDepositDone(now())})
-            
+        switch acceptedOfferResponse {
+          case (#TransactionArgs(transactionArgs)){
+            let toValidate = transactionArgs.icrc2.to == {
+              owner = treasuryCanisterId;
+              subaccount = ?"escrows0000000000000000000000000";
             };
-          case (#Err(_)) { };
-        };
-        // Freelancer push Notification
-        pushNotification(
-          assignedTo,
-          { 
-            date = now();
-            read = false;
-            kind = #DeliveryAccepted(taskId)
+            let amountValidate = transactionArgs.icrc2.amount == task.finalAmount;
+            if (not toValidate or not amountValidate) {
+              return #Err("Error in trasfer args");
+            }; 
+            let treasuryCanister = actor (Principal.toText(treasuryCanisterId)) : actor {
+              createEscrow : shared (TreasuryTypes.CreateEscrowArgs) -> async {
+                #Ok : Nat;
+                #Err : Text;
+              };
+            };
+            let assignedTo = switch (task.assignedTo) {
+              case (?user) { user };
+              case null { return #Err("Not user assigned") };
+            };
+            let escrow = await treasuryCanister.createEscrow({
+              platformFee = calculateFee(transactionArgs.icrc2.amount);
+              index = blockIndex;
+              transferArg = transactionArgs.icrc2;
+              token = task.token.canisterId;
+              userAssigned = assignedTo;
+            });
+
+            switch escrow {
+              case (#Ok(_)) {
+                ignore Map.remove<Nat, AcceptOfferResponse>(transferArgsByTask, nhash, taskId);
+                ignore Map.put<Nat, Task>(
+                  activeTasks,
+                  nhash,
+                  taskId,
+                  {
+                    task with
+                    chatId = ?ChatTypes.getChatId(caller, [assignedTo], ?{ id = Nat.toText(taskId); name = "Task" });
+                    status = #PaymentDepositDone(now());
+                  },
+                )
+
+              };
+              case (#Err(_)) {};
+            };
+            // Freelancer push Notification
+            pushNotification(
+              assignedTo,
+              {
+                date = now();
+                read = false;
+                kind = #DeliveryAccepted(taskId);
+              },
+            );
+              ////////////////////////////////
+            escrow;
+          };
+          case ( #Err(e) ) {
+            return #Err(e)
           }
-        );
-        ////////////////////////////////
-        escrow
+        }
       };
       case (null, _) {
         #Err("Task not found");
       };
-      case (_, null ) {
-        #Err("Transfer args not found")
-      }
-    }
+      case (_, null) {
+        #Err("Transfer args not found");
+      };
+    };
   };
 
   public shared ({ caller }) func deliveryTask({taskId: Nat; description: Text; asset: Types.Asset}): async Bool {
     let task = Map.get<Nat, Task>(activeTasks, nhash, taskId);
     switch task {
       case null return false;
-      case ( ?task ) {
+      case (?task) {
         switch (task.status) {
-          case (#PaymentDepositDone(_t)){
-            if (task.assignedTo != ?caller){
+          case (#PaymentDepositDone(_t)) {
+            if (task.assignedTo != ?caller) {
               return false;
             };
 
             // lastFileId += 1;
             // let newFile = {
-            //   asset with 
+            //   asset with
             //   id = lastFileId;
             //   withAccess = [caller, task.owner]
             // };
@@ -632,7 +705,7 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
             //// TODO: Crear type para entrega de tarea //////
 
             lastDeliveryTask += 1;
-            let newDelibery: Types.DeliveryTask = {
+            let newDelibery : Types.DeliveryTask = {
               description;
               id = lastDeliveryTask;
               date = now();
@@ -644,58 +717,69 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
             };
             ignore Map.put<Nat, Types.DeliveryTask>(deliveries, nhash, newDelibery.id, newDelibery);
             ignore Map.put<Nat, Task>(
-              activeTasks, 
-              nhash, 
-              taskId, 
-              {task with status = #Delivered(now()); deliveries = Array.tabulate<Nat>(
-                task.deliveries.size() + 1,
-                func i = if (i < task.deliveries.size()) { task.deliveries[i] } else { newDelibery.id }
-              )}
+              activeTasks,
+              nhash,
+              taskId,
+              {
+                task with status = #Delivered(now());
+                deliveries = Array.tabulate<Nat>(
+                  task.deliveries.size() + 1,
+                  func i = if (i < task.deliveries.size()) {
+                    task.deliveries[i];
+                  } else { newDelibery.id },
+                );
+              },
             );
             ////// Task Owner Push Notification ///////
             pushNotification(
               task.owner,
-              { 
+              {
                 date = now();
                 kind = #TaskDelivered(newDelibery.id);
                 read = false;
-              }
+              },
             );
             ////////////////////////////////
 
-            ignore Map.put<Nat, Task>(activeTasks, nhash, taskId, {task with status = #Delivered(now())}); // Agregar el id del archivo adjunto (file)
+            ignore Map.put<Nat, Task>(activeTasks, nhash, taskId, { task with status = #Delivered(now()) }); // Agregar el id del archivo adjunto (file)
             true;
           };
-          case _ { return false }
+          case _ { return false };
         };
-      }
-    }
-  };
-
-  public shared ({ caller }) func checkDelivery(id: Nat): async {#Ok: Types.DeliveryTask; #Err: Text}{
-    switch (Map.get<Nat, Types.DeliveryTask>(deliveries, nhash, id)) {
-      case null { return #Err("Delivery not found") };
-      case (?delivery) { 
-        if(delivery.taskOwner != caller) {
-          return #Err("Caller is not the task owner");
-        } else {
-          return #Ok(delivery)
-        }
       };
     };
   };
 
-  public shared ({ caller }) func acceptDelivery(args: Types.AcceptedDeliveryArgs): async {#Ok; #Err: Text} {
-    let {deliveryId; qualification; review } = args;
+  public shared ({ caller }) func checkDelivery(id : Nat) : async {
+    #Ok : Types.DeliveryTask;
+    #Err : Text;
+  } {
+    switch (Map.get<Nat, Types.DeliveryTask>(deliveries, nhash, id)) {
+      case null { return #Err("Delivery not found") };
+      case (?delivery) {
+        if (delivery.taskOwner != caller) {
+          return #Err("Caller is not the task owner");
+        } else {
+          return #Ok(delivery);
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func acceptDelivery(args : Types.AcceptedDeliveryArgs) : async {
+    #Ok;
+    #Err : Text;
+  } {
+    let { deliveryId; qualification; review } = args;
     let delivery = Map.get<Nat, Types.DeliveryTask>(deliveries, nhash, deliveryId);
     switch delivery {
       case null { return #Err("Delivery not found") };
-      case ( ?delivery ) {
-        switch (Map.get<Nat, Task>(activeTasks, nhash, delivery.taskId)){
+      case (?delivery) {
+        switch (Map.get<Nat, Task>(activeTasks, nhash, delivery.taskId)) {
           case null { return #Err("Task not found") };
-          case (?task){
+          case (?task) {
             switch (task.status) {
-              case (#Delivered(_)) { 
+              case (#Delivered(_)) {
                 if (task.owner != caller) {
                   return #Err("Caller is not the task owner");
                 };
@@ -707,24 +791,24 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
                 };
                 let response = await treasuryCanister.releaseEscrow(task.id);
                 if (response) {
-                  let updateDelivery: Types.DeliveryTask = {
-                    delivery with 
-                    qualification = ?qualification; 
+                  let updateDelivery : Types.DeliveryTask = {
+                    delivery with
+                    qualification = ?qualification;
                     review = ?review;
                   };
                   ignore Map.put<Nat, Types.DeliveryTask>(deliveries, nhash, deliveryId, updateDelivery);
                   ignore Map.remove<Nat, Task>(activeTasks, nhash, task.id);
-                  ignore Map.put<Nat, Task>(archivedTasks, nhash, task.id, {task with status = #Done(now())})
-                }
+                  ignore Map.put<Nat, Task>(archivedTasks, nhash, task.id, { task with status = #Done(now()) });
+                };
               };
-              case (_) { return #Err("Task is not delivered") }
+              case (_) { return #Err("Task is not delivered") };
             };
-          }
+          };
         };
-        
-      }
+
+      };
     };
-    #Ok
+    #Ok;
   };
 
   ///////////// private functions ///////////////
@@ -733,41 +817,46 @@ shared ({caller = DEPLOYER}) persistent actor  class() {
   //   Map.has<Principal, User>(users, phash, p)
   // };
 
-  func pushNotification(p: Principal, notif: Types.Notification) {
+  func pushNotification(p : Principal, notif : Types.Notification) {
     let currentNotifications = switch (Map.get<Principal, [Types.Notification]>(notifications, phash, p)) {
-      case null {[]};
-      case ( ?n ) { n }
+      case null { [] };
+      case (?n) { n };
     };
     let updatedNotifications = Array.tabulate<Types.Notification>(
       currentNotifications.size() + 1,
-      func i = if(i < currentNotifications.size()) { currentNotifications[i] } else { notif }
+      func i = if (i < currentNotifications.size()) { currentNotifications[i] } else {
+        notif;
+      },
     );
     ignore Map.put<Principal, [Types.Notification]>(notifications, phash, p, updatedNotifications)
 
   };
-  
-  func isAdmin(p: Principal): Bool {
-    for(a in admins.vals()){
-      if (a == p ) return true;
+
+  func isAdmin(p : Principal) : Bool {
+    for (a in admins.vals()) {
+      if (a == p) return true;
     };
-    return false
+    return false;
   };
 
-  func newMemo() : Blob {
+  func newMemo() : {blob: Blob; nat64: Nat64} {
     lastMemoTransactionId += 1;
     let txnText = Nat.toText(lastMemoTransactionId % 1000000000);
-    Text.encodeUtf8("InfinityTaskProtocolTX:" # txnText)
+    return {
+      blob = Text.encodeUtf8("InfinityTaskProtocolTX:" # txnText);
+      nat64 = Nat64.fromNat(lastMemoTransactionId)  
+    };
   };
 
-  func calculateFee(amount: Nat): Nat {
-    platformFee.fixedPart + (amount * platformFee.permilePart) / 1000
+  func calculateFee(amount : Nat) : Nat {
+    platformFee.fixedPart + (amount * platformFee.permilePart) / 1000;
   };
 
-  func verifyCode(u: Principal, _code: Nat): Bool {
-    switch (Map.remove<Principal, Nat>(verificationCodes, phash, u)){
+  func verifyCode(u : Principal, _code : Nat) : Bool {
+    switch (Map.remove<Principal, Nat>(verificationCodes, phash, u)) {
       case null false;
-      case ( ?code ) {code == _code}
-    }
+      case (?code) { code == _code };
+    };
   };
 
   func getNotifications(p : Principal) : [Types.Notification] {
