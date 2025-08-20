@@ -1,6 +1,7 @@
 import Principal "mo:base/Principal";
 import Map "mo:map/Map";
 import TreasuryTypes "../treasury/types";
+import Ledger "../interfaces/ICP_Token/ledger_icp"
 module {
 
     type Account = { owner : Principal; subaccount : ?Blob };
@@ -108,6 +109,14 @@ module {
       #Ok: [(Principal, Offer)];
       #taskNotFound;
       #unauthorized;
+    };
+    
+    public type AcceptOfferResponse = {
+        #TransactionArgs : {
+        icp : Ledger.TransferArgs;
+        icrc2 : Ledger.TransferArg;
+        };
+        #Err : Text;
     };
 
     public type Asset = {

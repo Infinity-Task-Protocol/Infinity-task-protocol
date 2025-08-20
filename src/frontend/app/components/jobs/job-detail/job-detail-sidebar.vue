@@ -6,9 +6,8 @@
 
         <!-- Contenedor de bids con blur condicional -->
         <div
-            class="max-h-80 overflow-y-auto space-y-4 pr-2 relative transition-all duration-300"
+            class="max-h-80 overflow-y-auto space-y-4 pr-2 relative transition-all duration-300 blur-md"
             :class="{
-            [blurClass]: hideBids,
             'pointer-events-none': hideBids,
             'blur-none pointer-events-auto': !hideBids
           }"
@@ -50,7 +49,7 @@
 
         <!-- Overlay con mensaje cuando está oculto -->
         <div
-            v-if="hideBids && showOverlay"
+            v-if="hideBids"
             class="absolute inset-0 flex items-center justify-center bg-white/20 dark:bg-slate-900/20 backdrop-blur-sm rounded-lg"
         >
           <div class="text-center p-4">
@@ -139,54 +138,34 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { Principal } from '@dfinity/principal'
+
+import type { TaskExpand } from 'declarations/backend/backend.did'
+import type { Offer } from 'declarations/backend/backend.did'
 
 const session = useSessionStore()
 
 // Estados del modal
 const isAcceptModalOpen = ref(false)
-const selectedBid = ref(null)
+const selectedBid = ref<DisplayBid| null>(null)
 
-const id = ref('')
-const data = ref(null)
-
+type DisplayBid = {
+  id: string
+  image: string
+  name: string
+  amount: number
+  tokenName: string | undefined
+}
 
 // Props del componente
-const props = defineProps({
-  task: {
-    type: Object,
-    default: () => []
-  },
-  bids: {
-    type: Array,
-    default: () => []
-  },
-  hideBids: {
-    type: Boolean,
-    default: true
-  },
-  blurIntensity: {
-    type: String,
-    default: 'sm', // sm, md, lg, xl, 2xl, 3xl
-    validator: (value) => ['none', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'].includes(value)
-  },
-  showOverlay: {
-    type: Boolean,
-    default: true
-  },
-  overlayMessage: {
-    type: String,
-    default: ''
-  }
-})
-
-// Computed para generar la clase de blur dinámicamente
-const blurClass = computed(() => {
-  if (props.blurIntensity === 'none') return 'blur-none'
-  return `blur-${props.blurIntensity}`
-})
+const props = defineProps<{
+  task: TaskExpand | null
+  bids: Array<[Principal, Offer]>   
+  hideBids?: boolean
+  overlayMessage?: string
+}>()
 
 
 const displayBids = computed(() => {
@@ -195,28 +174,41 @@ const displayBids = computed(() => {
       id: principal.toText(),
       image: 'https://api.dicebear.com/7.x/identicon/svg?seed=' + principal.toText(),
       name: principal.toText().slice(0, 10) + '...',
-      amount: Number(offer.amount) / 10 ** Number(props.task.token.decimals),
-      tokenName: props.task.token.symbol,
+      amount: Number(offer.amount) / 10 ** Number(props.task?.token.decimals),
+      tokenName: props.task?.token.symbol,
     }
   })
 })
 
 
 // Función para abrir el modal de aceptar
-const openAcceptModal = (bid) => {
-  // if (props.hideBids) return // No permitir si están ocultos
+
+const openAcceptModal = (bid: DisplayBid) => {
+  if (props.hideBids) return // No permitir si están ocultos
+
   selectedBid.value = bid
   isAcceptModalOpen.value = true
 }
 
 // Función para manejar la aceptación del bid
+declare global {
+  interface Window {
+    ic: any;
+  }
+}
+
 const handleAcceptBid = async () => {
   if (!selectedBid.value) return
 
   try {
     console.log('Accepting bid:', selectedBid.value)
 
-    const taskId = BigInt(props.task.id)
+
+    if (!props.task?.id) {
+      throw new Error('Task ID is undefined')
+    }
+    const taskId = BigInt(props.task?.id)
+
     
     const bidderPrincipal = Principal.fromText(selectedBid.value.id)
     console.log({Principal : selectedBid.value.id})
@@ -224,37 +216,54 @@ const handleAcceptBid = async () => {
     const response = await session.backend.acceptOffer(taskId, bidderPrincipal)
     console.log(response)
     // console.log("{task: task}")
-    if("Ok" in response){
+    if("TransactionArgs" in response){
       isAcceptModalOpen.value = false
       selectedBid.value = null
-      let args = response.Ok.args;
-      const params = {
-        to: "827d788022a863123db4294da0e5d07eb308dd5913860fb0308715dd8fbfd682",
-        amount: 2000000000,
-        memo: "123456789"
-      }
-      console.log(args.args)
-      if(args.to.owner){
-        // args.to = response.Ok.to_account_id
-        args.to = "827d788022a863123db4294da0e5d07eb308dd5913860fb0308715dd8fbfd682"
-      }
-      console.log({accountID: response.Ok.to_account_id})
-      console.log({args: args})
-      console.log({params: params})
-      // console.log({account: params.to})
-      const e = await window.ic.plug.requestConnect(
-        {whitelist: [props.task.token.canisterId.toString()]}
-      )
-      console.log({e})
-    
-      if (await window.ic.plug.isConnected()) {
-        try {
-          transferStatus = await window.ic.plug.requestTransfer(params)
-          console.log({transferStatus})
-        } catch (transferError) {
-          console.error("Error en la transferencia:", transferError)
-          transferStatus = undefined
+
+      let argsGroup = response.TransactionArgs;
+      // const argsFiltered = props.task?.token.symbol === "ICP" ? argsGroup.icrc2: argsGroup.icrc2
+      const argsFiltered = argsGroup.icrc2;
+
+      console.log({amount: argsFiltered.amount})
+
+      try {
+        if(!(await window.ic.plug.isConnected())){
+          const e = await window.ic.plug.requestConnect(
+            {whitelist: [props.task.token.canisterId.toString()]}
+          )
         }
+
+        const args = {
+          ...argsFiltered,
+          to: (argsGroup.icp.to.length == 32) ? 
+            Array.from(argsGroup.icp.to, b => b.toString(16).padStart(2, "0")).join(""):
+            argsFiltered.to,
+          amount: Number(argsFiltered.amount),
+          icrc1_memo: argsGroup.icrc2.memo,
+          created_at_time: Math.floor(Number(argsFiltered.created_at_time[0] ? argsFiltered.created_at_time[0]: 0)/1000000000),
+          fee: Number(argsFiltered.fee)
+        }
+
+        if (await window.ic.plug.isConnected()) { 
+          try {
+            const transferResponse = await window.ic.plug.requestTransfer(args)
+            console.log({transferResponse})
+            console.log(transferResponse.height)
+            if ("height" in transferResponse){
+              const paymentVerification = await session.backend.paymentNotification({
+                taskId : taskId, 
+                blockIndex : BigInt(transferResponse.height)
+              })
+              console.log({paymentVerification})
+            }
+          } catch (transferError) {
+            console.error("Error en la transferencia:", transferError)
+          }
+        }
+      } catch (connectError) {
+        console.error("Error al conectar a Plug Wallet:", connectError)
+        window.open("https://chromewebstore.google.com/detail/plug/cfbfdhimifdmdehjmkdobpcjfefblkjm", "_blank")
+        return // Termina la función si hay un error de conexión
       }
       console.log("refrescar la vista como si props.task[0]?.task.status estuviera en #AcceptedOffer")
     } else {

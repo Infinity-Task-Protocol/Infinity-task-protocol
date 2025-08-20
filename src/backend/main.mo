@@ -27,6 +27,7 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
   type TaskDataInit = Types.TaskDataInit;
   type Task = Types.Task;
   type TaskPreview = Types.TaskPreview;
+  type AcceptOfferResponse = Types.AcceptOfferResponse;
 
   let users = Map.new<Principal, User>();
   
@@ -452,13 +453,7 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
     };
   };
 
-  type AcceptOfferResponse = {
-    #TransactionArgs : {
-      icp : Ledger.TransferArgs;
-      icrc2 : Ledger.TransferArg;
-    };
-    #Err : Text;
-  };
+  
 
   public shared ({ caller }) func acceptOffer(taskId : Nat, user : Principal) : async AcceptOfferResponse {
 
@@ -603,7 +598,7 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
       case _ { return #Err("Task not found") };
     };
   };
-
+  
   public shared ({ caller }) func paymentNotification({taskId : Nat; blockIndex : Nat64}) : async { #Err : Text; #Ok : Nat } {
     let task = Map.get<Nat, Task>(activeTasks, nhash, taskId);
     let acceptedOfferResponse = Map.get<Nat, AcceptOfferResponse>(transferArgsByTask, nhash, taskId);

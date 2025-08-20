@@ -173,7 +173,21 @@ shared ({caller = superAdmin}) persistent actor class Treasury(initArgs: Types.I
                 case (? #Transfer(t)) {
                     let toVerified = t.to == Principal.toLedgerAccount(args.to.owner, args.to.subaccount);
                     let amountVerified = t.amount == {e8s = Nat64.fromNat(args.amount)};
-                    let created_at_time_verified = ?transaction.created_at_time.timestamp_nanos == args.created_at_time;
+                    let window = 60000000000: Nat64; 
+                    let signature_delay = switch (args.created_at_time){
+                        case null 0: Nat64;
+                        case (?_created_at_time) {
+                           transaction.created_at_time.timestamp_nanos - _created_at_time
+                        }
+                    };
+                    // let created_at_time_verified = ?transaction.created_at_time.timestamp_nanos == args.created_at_time;
+                    let created_at_time_verified = window >= signature_delay;
+                    print(debug_show(toVerified));
+                    print(debug_show(amountVerified));
+                    print(debug_show(created_at_time_verified));
+
+                    print(debug_show({transaction= transaction.created_at_time.timestamp_nanos}));
+                    print(debug_show({args = args.created_at_time}));
                     if (toVerified and amountVerified and created_at_time_verified){
                         return true
                     };       
