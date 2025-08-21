@@ -57,6 +57,7 @@ module {
     // public type Balance = (Account, Nat);
     public type Balance = {
         token: Principal;
+        symbol: Text;
         balance: Nat;
     };
 

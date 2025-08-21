@@ -14,12 +14,6 @@
         <a href="https://1.envato.market/jobstack-vue" target="_blank" class="py-1 px-3 relative inline-block rounded-t-md -rotate-90 bg-white dark:bg-slate-900 shadow-md dark:shadow-sm dark:shadow-gray-800 font-semibold"><i class="mdi mdi-cart-outline me-1"></i> Download</a>
     </div> -->
 
-    <div class="fixed top-[40%] -left-3 z-50">
-        <router-link to="#" id="switchRtl">
-            <span class="py-1 px-3 relative inline-block rounded-b-md -rotate-90 bg-white dark:bg-slate-900 shadow-md dark:shadow-sm dark:shadow-gray-800 font-semibold rtl:block ltr:hidden" @click="changeThem($event)">LTR</span>
-            <span class="py-1 px-3 relative inline-block rounded-b-md -rotate-90 bg-white dark:bg-slate-900 shadow-md dark:shadow-sm dark:shadow-gray-800 font-semibold ltr:block rtl:hidden" @click="changeThem($event)">RTL</span>
-        </router-link>
-    </div>
 
     <div v-if="backButton" class="fixed bottom-3 end-3 z-10">
         <router-link to="/" class="back-button btn btn-icon bg-emerald-600 hover:bg-emerald-700 border-emerald-600 dark:border-emerald-600 text-white rounded-full"><i data-feather="arrow-left" class="size-4"></i></router-link>

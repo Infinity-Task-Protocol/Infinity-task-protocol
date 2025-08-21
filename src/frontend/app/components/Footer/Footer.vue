@@ -7,7 +7,7 @@
                             <div class="grid md:grid-cols-12 grid-cols-1 gap-[30px]">
                                 <div class="md:col-span-3">
                                     <NuxtLink to="/" class="flex justify-center md:justify-start focus:outline-none">
-                                        <img :src="logo" class="" alt="">
+                                        Infinity Task
                                     </NuxtLink>
                                 </div>
                         
@@ -18,19 +18,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="py-[30px] px-0 border-t border-gray-800 dark:border-gray-700">
-                <div class="container text-center">
-                    <div class="grid md:grid-cols-2 items-center gap-6">
-                        <div class="md:text-start text-center">
-                        </div>
-
-                        <ul class="list-none md:text-end text-center">
-                            <li v-for="item in icons" :key="item" class="inline me-1"><a :href="item.link" target="_blank" class="size-8 inline-flex items-center text-center justify-center text-base font-semibold tracking-wide align-middle transition duration-500 ease-in-out border-2 border-gray-800 dark:border-gray-700 rounded-md hover:border-emerald-600 dark:hover:border-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-600 text-white"><i :class="item.icon" title="Buy Now"></i></a></li>
-                        </ul>
                     </div>
                 </div>
             </div>

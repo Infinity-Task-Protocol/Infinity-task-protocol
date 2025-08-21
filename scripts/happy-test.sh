@@ -203,6 +203,7 @@ expected_output='(
     record {
       token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
       balance = 556_400_000 : nat;
+      symbol = "LICP";
     };
   },
 )'
@@ -221,6 +222,7 @@ expected_output='(
     record {
       token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
       balance = 156_390_000 : nat;
+      symbol = "LICP";
     };
   },
 )'

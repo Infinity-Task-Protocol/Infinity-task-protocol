@@ -5,7 +5,7 @@ import { HttpAgent, AnonymousIdentity } from '@dfinity/agent'
 import type { Identity, ActorSubclass } from '@dfinity/agent'
 import type { User, Notification, Msg, _SERVICE } from '../../declarations/backend/backend.did'
 import { createActor } from '../../declarations/backend'
-import type { _SERVICE as TREASURY_SERVICE, Token} from '../../declarations/treasury/treasury.did'
+import type { _SERVICE as TREASURY_SERVICE, Token, Balance} from '../../declarations/treasury/treasury.did'
 import {createActor as createTreasuryActor } from '../../declarations/treasury'
 const canisterId = import.meta.env.VITE_CANISTER_ID_BACKEND as string
 const treasuryCanisterId = import.meta.env.VITE_CANISTER_ID_TREASURY as string
@@ -24,7 +24,7 @@ export const useSessionStore = defineStore('session', () => {
     const isModalOpen = ref(false)
     const initialized = ref(false)
     const supportedTokens = ref<Token[]>([])
-    const userBalances = ref<{token: string; balance: bigint}[]>([])
+    const userBalances = ref<Balance[]>([])
 
     const backend = ref<ActorSubclass<_SERVICE>>(createActor(canisterId, {
         agentOptions: { identity: identity.value, host }
@@ -74,7 +74,7 @@ export const useSessionStore = defineStore('session', () => {
 
     async function signIn() {
         if (!isAuthenticated.value) return
-
+        
         try {
             supportedTokens.value = await treasury.value.getSupportedTokens()
             const response = await backend.value.signIn()

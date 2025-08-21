@@ -73,7 +73,7 @@
         if (session.user) { // Asegúrate de que session.user no sea null antes de intentar acceder a 'verified'
           session.user.verified = true; // Marca el usuario como verificado en el store de sesión
         }
-        router.push('/tasks')
+        await router.push('/tasks')
       }
     } catch (e) {
       console.error("Verification error", e)

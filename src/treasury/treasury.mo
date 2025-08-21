@@ -25,7 +25,7 @@ shared ({caller = superAdmin}) persistent actor class Treasury(initArgs: Types.I
 
     /////////////////////////////////////// Variables state /////////////////////////////////////////////////
 
-    var admins: [Principal] = [superAdmin];
+    var admins: [Principal] = [superAdmin, initArgs.mainPlatform];
     var activityLog: List.List<ActivityLogEntry> = List.nil<ActivityLogEntry>();
     var _withdrawalLog: List.List<WhitdrawalLogEntry> = List.nil<Types.WhitdrawalLogEntry>();
     var _internalSubaccounts: [Blob] = [
@@ -57,6 +57,7 @@ shared ({caller = superAdmin}) persistent actor class Treasury(initArgs: Types.I
         icrc1_transfer : shared LedgerTypes.TransferArg -> async LedgerTypes.Result;
         query_blocks : shared query LedgerTypes.GetBlocksArgs -> async LedgerTypes.QueryBlocksResponse;
         icrc1_fee : shared query () -> async Nat;
+        icrc1_symbol: shared query () -> async Text;
     } {
         actor(Principal.toText(p))
     };
@@ -233,14 +234,22 @@ shared ({caller = superAdmin}) persistent actor class Treasury(initArgs: Types.I
                 };
                 let bufferBalances = Buffer.Buffer<Types.Balance>(0);
                 var currentBalanceOfTokenUsed = 0;
+                var symbol = "";
                 for (currentBal in currentUserBalances.vals() ) {
                     if (currentBal.token != escrow.token) {
                         bufferBalances.add(currentBal);
                     } else  {
                         currentBalanceOfTokenUsed := currentBal.balance;
+                        symbol := currentBal.symbol
                     };
                 };
+                
                 bufferBalances.add({
+                    symbol = if (symbol == "") {
+                        await remoteLedger(escrow.token).icrc1_symbol()
+                    } else {
+                        symbol;
+                    };
                     token = escrow.token; 
                     balance = currentBalanceOfTokenUsed + escrow.amount - escrow.platformFee: Nat
                 });
