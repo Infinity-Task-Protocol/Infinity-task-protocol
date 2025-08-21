@@ -105,6 +105,7 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
                 let sender = {name = user; principal};
                 let notification = {
                     date = now();
+                    read = false;
                     kind = #Msg({
                       sender with
                       nameSender = user;
@@ -141,6 +142,7 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
                         let sender = {name = chat.users[senderIndex].name; principal};
                         let notification = {
                             date = now();
+                            read = false;
                             kind = #Msg({ sender with chatId;})
                         };
                         let principalUsers = Array.map<{name: Text; principal:Principal}, Principal>(
@@ -157,25 +159,58 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
         }
     };
 
-    // public shared ({ caller }) func readPaginateChat(id: ChatId, page: Nat): async Types.ReadChatResponse{
-    //     let chat = Map.get<ChatId, Chat>(chats, n32hash, id);
-    //     switch chat {
-    //         case null { #Err("Chat not found") };
-    //         case ( ?chat ) {
-    //             if (not callerIncluded(caller, chat.users)) { return #Err("Caller is not included in this chat") };
-    //             if (page == 0){
-    //                 let length = if (List.size(chat.msgs) > 10) { 10 } else { List.size(chat.msgs)};
-    //                 let msgs = Array.subArray<Msg>(chat.msgs, 0, length);
-    //                 let moreMsg = chat.msgs.size() > 10;
-    //                 return #Ok( #Start({msgs; users = chat.users; moreMsg}) )
-    //             } else {
-    //                 let length = if (chat.msgs.size() >= 10 * page + 10) { 10} else { chat.msgs.size() % 10};
-    //                 let msgs = Array.subArray<Msg>(chat.msgs, 10 * page, length);
-    //                 return #Ok( #OnlyMsgs( {msgs; moreMsg = chat.msgs.size() > 10 * page} ) )
-    //             }
-    //         }
-    //     }
-    // };
+    public shared ({ caller }) func getMyNotifications(): async [Types.Notification]{
+        return switch (Map.get<Principal, [Types.Notification]>(notifications, phash, caller)){
+            case null {[]};
+            case (?notif) { notif}
+        }
+    };
+
+    public shared ({ caller }) func markAsRead(date: Int): async {#Ok; #Err: Text}{
+        let userNotifications = switch (Map.get<Principal, [Types.Notification]>(notifications, phash, caller)){
+            case null {[]};
+            case (?n) {n}
+        };
+        if(userNotifications.size() == 0) {
+            return #Err("There are no notifications")
+        };
+        let updateNotifications = Array.map<Types.Notification, Types.Notification>(
+            userNotifications,
+            func n = if (n.date == date) {{n with read = true}} else {n}
+        );
+        ignore Map.put<Principal,[Types.Notification]>(notifications, phash, caller, updateNotifications);
+        #Ok
+    };
+
+    public shared ({ caller }) func deleteNotification(date: Int): async {#Ok; #Err: Text}{
+        let userNotifications = switch (Map.get<Principal, [Types.Notification]>(notifications, phash, caller)){
+            case null {[]};
+            case (?n) {n}
+        };
+        if(userNotifications.size() == 0) {
+            return #Err("There are no notifications")
+        };
+        let updateNotifications = Array.filter<Types.Notification>(
+            userNotifications,
+            func n =  (n.date == date)
+        );
+        ignore Map.put<Principal,[Types.Notification]>(notifications, phash, caller, updateNotifications);
+        #Ok
+    };
+
+    public shared ({ caller }) func readPaginateChat(id: ChatId, page: Nat): async Types.ReadChatResponse{
+        let chat = Map.get<ChatId, Chat>(chats, n32hash, id);
+        switch chat {
+            case null { #Err("Chat not found") };
+            case ( ?chat ) {
+                if (not callerIncluded(caller, chat.users)) { return #Err("Caller is not included in this chat") };
+                let msgsQty = List.size(chat.msgs);
+                let lengthResponse = if (msgsQty >= 10 * page + 10) { 10 } else { msgsQty % 10};
+                let msgs = Array.subArray<Msg>(List.toArray(chat.msgs), 10 * page, lengthResponse);
+                return #Ok({msgs; moreMsg = msgsQty > 10 * page; users = chat.users} )
+            }
+        }
+    };
 
 
 

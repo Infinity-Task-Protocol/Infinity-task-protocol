@@ -234,21 +234,21 @@ shared ({caller = superAdmin}) persistent actor class Treasury(initArgs: Types.I
                 };
                 let bufferBalances = Buffer.Buffer<Types.Balance>(0);
                 var currentBalanceOfTokenUsed = 0;
-                var symbol = "";
+                var tokenSymbol = "";
                 for (currentBal in currentUserBalances.vals() ) {
                     if (currentBal.token != escrow.token) {
                         bufferBalances.add(currentBal);
                     } else  {
                         currentBalanceOfTokenUsed := currentBal.balance;
-                        symbol := currentBal.symbol
+                        tokenSymbol := currentBal.symbol
                     };
                 };
                 
                 bufferBalances.add({
-                    symbol = if (symbol == "") {
+                    symbol = if (tokenSymbol == "") {
                         await remoteLedger(escrow.token).icrc1_symbol()
                     } else {
-                        symbol;
+                        tokenSymbol;
                     };
                     token = escrow.token; 
                     balance = currentBalanceOfTokenUsed + escrow.amount - escrow.platformFee: Nat

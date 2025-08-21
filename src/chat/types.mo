@@ -21,6 +21,7 @@ module {
 
     public type Notification = {
         date: Int;
+        read: Bool;
         kind: {
             #Msg: Participant and {chatId: ChatId};
         } 
