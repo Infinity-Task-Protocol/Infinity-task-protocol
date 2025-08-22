@@ -92,24 +92,19 @@ module {
 
     public func generateDataFromUsers(users: [Principal], sender: Principal): {chatId: Nat32; sortedUsers: [Principal]; senderIndex: Nat} {
         let usersSet = Set.fromIter<Principal>(users.vals(), phash);
-        let usersWithoutDuplicates = Set.toArray<Principal>(usersSet);
+        ignore Set.put<Principal>(usersSet, phash, sender);
         let sortedUsers = Array.sort<Principal>(
-            Array.tabulate<Principal>(
-                usersWithoutDuplicates.size() + 1, 
-                func i = if(i == 0){sender} else {usersWithoutDuplicates[i -1]}
-            ),
+            Set.toArray<Principal>(usersSet),
             Principal.compare
         );
         var usersPrehash = "";
         var index = 0;
         var senderIndex = 0;
         
-        for(user in (Array.sort<Principal>(sortedUsers, Principal.compare)).vals()){
-            if (not Set.has<Principal>(usersSet, phash, user)) { 
-                usersPrehash #= Principal.toText(user);
-                if (user == sender) { senderIndex := index };
-                index += 1;
-            };   
+        for(user in sortedUsers.vals()){
+            usersPrehash #= Principal.toText(user);
+            if (user == sender) { senderIndex := index };
+            index += 1;
         };
         let chatId = Text.hash(usersPrehash);
         {chatId; sortedUsers; senderIndex}

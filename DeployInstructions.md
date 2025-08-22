@@ -59,5 +59,19 @@ npm run build
 npm run generate
 dfx deploy frontend
 ```
+Deploying and configuring canister chat
+
+```sh
+dfx deploy chat
+export chatCanisterID=$(dfx canister id chat --ic)
+dfx canister call backend setChatCanisterId "(principal \"${chatCanisterID}\" --ic)"
+```
+
+In case there are already registered users on the platform
+
+```sh
+dfx canister call backend syncUsersInCanisterChat
+
+```
 
 Will continue ...

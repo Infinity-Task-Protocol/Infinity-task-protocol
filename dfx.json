@@ -8,6 +8,16 @@
       },
       "specified_id": "gyjow-laaaa-aaaak-quh6q-cai"
     },
+    "chat": {
+      "main": "src/chat/main.mo",
+      "type": "motoko",
+      "declarations": {
+        "output": "./src/declarations/chat"
+      },
+      "init_arg": "(record { mainPlatform = principal \"gyjow-laaaa-aaaak-quh6q-cai\" })",
+      "specified_id": "cxypw-rqaaa-aaaak-quliq-cai"
+
+    },
     "treasury": {
       "main": "src/treasury/treasury.mo",
       "type": "motoko",

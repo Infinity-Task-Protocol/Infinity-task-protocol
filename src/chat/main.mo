@@ -16,7 +16,7 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
     
 
     let chats = Map.new<ChatId, Chat>();
-    let userNames = Map.new<Principal, Text>();
+    var userNames = Map.new<Principal, Text>();
     transient let notifications = Map.new<Principal, [Types.Notification]>();
 
     ////////////////////// Main canister comunications ///////////////////////////////
@@ -29,6 +29,22 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
     public shared ({ caller }) func removeUser(u: Principal) {
         assert (caller == initArgs.mainPlatform);
         Map.delete<Principal, Text>(userNames, phash, u);
+    };
+
+    public shared ({ caller }) func setUsers(users: [(Principal, Text)]): async {#Ok; #Err: Text}{
+        assert(caller == initArgs.mainPlatform);
+        userNames := Map.fromIter<Principal, Text>(users.vals(), phash);
+        #Ok
+    };
+
+    public shared query ({ caller }) func getUsers(): async [(Principal, Text)]{
+        assert(caller == superAdmin);
+        Map.toArray<Principal, Text>(userNames)
+    };
+
+    ///////////////////////////// Info  //////////////////////////////////////
+    public query func getMainPlatform(): async Principal {
+        initArgs.mainPlatform
     };
 
     ///////////////////////////// Private functions //////////////////////////
@@ -159,7 +175,7 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
         }
     };
 
-    public shared ({ caller }) func getMyNotifications(): async [Types.Notification]{
+    public shared query({ caller }) func getMyNotifications(): async [Types.Notification]{
         return switch (Map.get<Principal, [Types.Notification]>(notifications, phash, caller)){
             case null {[]};
             case (?notif) { notif}
@@ -211,8 +227,5 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
             }
         }
     };
-
-
-
 
 }

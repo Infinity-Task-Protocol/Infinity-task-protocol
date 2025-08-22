@@ -97,14 +97,31 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
     #Ok
   };
 
-  public shared ({ caller }) func setTreasuryCanisterId(p: Principal): async () {
+  public shared ({ caller }) func setTreasuryCanisterId(p: Principal): async {#Ok} {
     assert isAdmin(caller) and Principal.isAnonymous(treasuryCanisterId);
     treasuryCanisterId := p;
+    #Ok
   };
 
-  public shared ({ caller }) func setChatCanisterId(p: Principal): async () {
+  public shared ({ caller }) func setChatCanisterId(p: Principal): async {#Ok} {
     assert isAdmin(caller) and Principal.isAnonymous(chatCanisterId);
     chatCanisterId := p;
+    #Ok
+  };
+
+  public shared ({ caller }) func syncUsersInCanisterChat(): async {#Ok; #Err: Text}{
+    assert(isAdmin(caller));
+    if(Principal.isAnonymous(chatCanisterId)){
+      return #Err("Chat canister ID not configured")
+    };
+    let chatActor = actor(Principal.toText(chatCanisterId)): actor {
+      setUsers: shared [(Principal, Text)] -> async {#Ok; #Err: Text}
+    };
+    let userNames = Array.map<(Principal, User), (Principal, Text)>(
+      Map.toArray<Principal, User>(users),
+      func u = (u.0, u.1.name)
+    );
+    await chatActor.setUsers(userNames)
   };
 
   ////////////////// Admin functions /////////////////////
@@ -148,6 +165,16 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
           principal = caller /* ; email = ?email */;
         };
         ignore Map.put<Principal, User>(users, phash, caller, newUser);
+
+        // Register user name in canister chat
+        if(not Principal.isAnonymous(chatCanisterId)){
+          let chatActor = actor(Principal.toText(chatCanisterId)): actor {
+            addUser: shared (Principal, Text) -> async {#Ok; #Err: Text}
+          };
+          ignore chatActor.addUser(caller, name)
+        };
+        ////
+
         return #Ok({
           user = newUser;
           notifications = [];

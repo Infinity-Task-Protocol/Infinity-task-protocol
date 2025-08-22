@@ -4,9 +4,11 @@ import { AnonymousIdentity } from '@dfinity/agent'
 
 export function useAuth() {
     const router = useRouter()
+    const internetIdentityUrl = import.meta.env.VITE_DFX_NETWORK === "local" ? "http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943" : "https://identity.ic0.app";
+    console.log(import.meta.env.VITE_DFX_NETWORK)
     async function loginWith(provider: 'ii' | 'nfid') {
         const providerUrl = provider === 'ii'
-            ? 'http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943'
+            ? internetIdentityUrl
             : 'https://nfid.one/authenticate/?applicationName=my-ic-app';
 
         const authClient = await AuthClient.create();
