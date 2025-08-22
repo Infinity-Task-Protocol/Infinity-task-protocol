@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { toBigIntAmount } from '@/utils/token'
+import {Principal} from '@dfinity/principal'
 
 
 definePageMeta({
@@ -10,13 +12,8 @@ definePageMeta({
 
 const session = useSessionStore()
 
-
-//Todo Add getAcceptedToken function from Treasury canister
-
 const tokens = await session.treasury.getSupportedTokens()
-console.log(tokens[0])
-
-//const acceptedTokens = session.treasury.getSupportedToken()
+const router = useRouter()
 
 const form = ref({
   title: '',
@@ -33,10 +30,8 @@ function handleFiles(e: Event) {
     form.value.files = Array.from(input.files)
   }
 }
-const admins = await session.treasury.getSupportedTokens()
 const tokenSelected = ref(0)
 
-console.log(admins)
 async function handleSubmit() {
   
   const assetData = await Promise.all(
@@ -48,8 +43,17 @@ async function handleSubmit() {
         }
       })
   )
+  
+  const tokenByDefault = {
+    fee : BigInt(10000),
+    decimals: BigInt(8),
+    logo : "",
+    name : "Internet Computer",
+    symbol : "ICP",
+    canisterId : Principal.fromText('ryjl3-tyaaa-aaaaa-aaaba-cai'),
+  }
 
-  const selectedToken = tokens[tokenSelected.value]
+  const selectedToken = tokens[tokenSelected.value] || tokenByDefault
   
   const payload = {
     title: form.value.title,
@@ -57,14 +61,17 @@ async function handleSubmit() {
     keywords: form.value.keywords,
     token: selectedToken,
     rewardRange: [
-      BigInt(form.value.minReward * 10 ** Number(selectedToken.decimals)) , 
-      BigInt(form.value.maxReward * 10 ** Number(selectedToken.decimals))
-    ],
+      toBigIntAmount(form.value.minReward.toString(), Number(selectedToken?.decimals)),
+      toBigIntAmount(form.value.maxReward.toString(), Number(selectedToken?.decimals)),
+    ] as [bigint, bigint],
     assets: []
   }
+  if (payload.token){
+    const response = await session.backend.createTask(payload)
+  }
+  
 
-  const response = await session.backend.createTask(payload)
-  console.log('Task created:', response)
+  await router.push('/tasks')
 
 }
 </script>
@@ -105,8 +112,8 @@ async function handleSubmit() {
                   </div>
                   <div>
                     <label class="font-semibold">Choose an asset:</label>
-                    <select name="token" id="tokenSelector" class="form-input mt-1 border">
-                      <option v-for="token in tokens" :key="token.id" :value="token.id">{{ token.symbol }}</option>
+                    <select v-model="tokenSelected" name="token" id="tokenSelector" class="form-input mt-1 border">
+                      <option v-for="(token , index) in tokens" :key="index" :value="index">{{ token.symbol }}</option>
                     </select>
                   </div>
                 </div>

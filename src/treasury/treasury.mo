@@ -11,9 +11,11 @@ import Nat "mo:base/Nat";
 import Text "mo:base/Text";
 import Iter "mo:base/Iter";
 import LedgerTypes "../interfaces/ICP_Token/ledger_icp";
+import { print } "mo:base/Debug";
+import Utils "../backend/utils";
 
 
-shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = this {
+shared ({caller = superAdmin}) persistent actor class Treasury(initArgs: Types.InitArgs) = this {
 
     /////////////////////////////////////////// Types ////////////////////////////////////////////////////////
 
@@ -23,21 +25,21 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
 
     /////////////////////////////////////// Variables state /////////////////////////////////////////////////
 
-    stable var admins: [Principal] = [superAdmin];
-    stable var activityLog: List.List<ActivityLogEntry> = List.nil<ActivityLogEntry>();
-    stable var withdrawalLog: List.List<WhitdrawalLogEntry> = List.nil<Types.WhitdrawalLogEntry>();
-    stable var internalSubaccounts: [Blob] = [
+    var admins: [Principal] = [superAdmin, initArgs.mainPlatform];
+    var activityLog: List.List<ActivityLogEntry> = List.nil<ActivityLogEntry>();
+    var _withdrawalLog: List.List<WhitdrawalLogEntry> = List.nil<Types.WhitdrawalLogEntry>();
+    var _internalSubaccounts: [Blob] = [
         "feecollector00000000000000000000",
         "escrows0000000000000000000000000",
     ];
-    stable let escrows = Map.new<Types.EscrowId, Types.Escrow>();
+    let escrows = Map.new<Types.EscrowId, Types.Escrow>();
 
-    stable let supportedTokens = Map.make<Text, Types.Token>(thash, "Internet Computer", Types.icpToken());
+    let supportedTokens = Map.make<Text, Types.Token>(thash, "Internet Computer", Types.icpToken());
 
-    stable var lastEscrowId = 0;
-    stable var lastMemoTransactionId = 0;
+    var lastEscrowId = 0;
+    var lastMemoTransactionId = 0;
 
-    stable var withdrawableBalances = Map.new<Principal, [Types.Balance]>();
+    var withdrawableBalances = Map.new<Principal, [Types.Balance]>();
 
     //////////////////////////////////// Private Functions ///////////////////////////////////////////////////
 
@@ -55,6 +57,7 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
         icrc1_transfer : shared LedgerTypes.TransferArg -> async LedgerTypes.Result;
         query_blocks : shared query LedgerTypes.GetBlocksArgs -> async LedgerTypes.QueryBlocksResponse;
         icrc1_fee : shared query () -> async Nat;
+        icrc1_symbol: shared query () -> async Text;
     } {
         actor(Principal.toText(p))
     };
@@ -167,13 +170,26 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
 
     func verifyTransaction(args: LedgerTypes.TransferArg, blocks: [LedgerTypes.CandidBlock]): Bool {
         for ({ transaction } in blocks.vals()){
-            let memo = transaction.icrc1_memo;
             switch (transaction.operation){
                 case (? #Transfer(t)) {
                     let toVerified = t.to == Principal.toLedgerAccount(args.to.owner, args.to.subaccount);
                     let amountVerified = t.amount == {e8s = Nat64.fromNat(args.amount)};
-                    let memoVerified = memo == args.memo;
-                    if (toVerified and amountVerified and memoVerified){
+                    let window = 60000000000: Nat64; 
+                    let signature_delay = switch (args.created_at_time){
+                        case null 0: Nat64;
+                        case (?_created_at_time) {
+                           transaction.created_at_time.timestamp_nanos - _created_at_time
+                        }
+                    };
+                    // let created_at_time_verified = ?transaction.created_at_time.timestamp_nanos == args.created_at_time;
+                    let created_at_time_verified = window >= signature_delay;
+                    print(debug_show(toVerified));
+                    print(debug_show(amountVerified));
+                    print(debug_show(created_at_time_verified));
+
+                    print(debug_show({transaction= transaction.created_at_time.timestamp_nanos}));
+                    print(debug_show({args = args.created_at_time}));
+                    if (toVerified and amountVerified and created_at_time_verified){
                         return true
                     };       
                 };
@@ -218,14 +234,22 @@ shared ({caller = superAdmin}) actor class Treasury(initArgs: Types.InitArgs) = 
                 };
                 let bufferBalances = Buffer.Buffer<Types.Balance>(0);
                 var currentBalanceOfTokenUsed = 0;
+                var tokenSymbol = "";
                 for (currentBal in currentUserBalances.vals() ) {
                     if (currentBal.token != escrow.token) {
                         bufferBalances.add(currentBal);
                     } else  {
                         currentBalanceOfTokenUsed := currentBal.balance;
+                        tokenSymbol := currentBal.symbol
                     };
                 };
+                
                 bufferBalances.add({
+                    symbol = if (tokenSymbol == "") {
+                        await remoteLedger(escrow.token).icrc1_symbol()
+                    } else {
+                        tokenSymbol;
+                    };
                     token = escrow.token; 
                     balance = currentBalanceOfTokenUsed + escrow.amount - escrow.platformFee: Nat
                 });

@@ -109,7 +109,7 @@ dfx canister call icp_ledger icrc1_transfer "(
 
 echo "📝 TaskOwner0 signs up and creates a task..."
 dfx identity use 0000TaskOwner
-dfx canister call backend signUp '(record {name = "TaskOwner0"})'
+dfx canister call backend signUp '(record {name = "TaskOwner0"; email = "task_owner0@protonmail.com"})'
 
 dfx canister call backend createTask '(
   record {
@@ -131,7 +131,7 @@ dfx canister call backend createTask '(
 
 echo "🧪 Freelancer0 signs up, verifies, and applies for the task..."
 dfx identity use 0000Freelancer
-dfx canister call backend signUp '(record {name = "0001Freelancer"})'
+dfx canister call backend signUp '(record {name = "0001Freelancer"; email = "freelancer001@protonmail.com"})'
 code_output=$(dfx canister call backend getVerificationCode)
 code=$(echo "$code_output" | sed -n 's/.*opt (\([0-9_]*\).*/\1/p' | tr -d '_')
 dfx canister call backend enterCodeVerification $code
@@ -139,7 +139,7 @@ dfx canister call backend applyForTask '(record { taskId = 1; amount = 750000000
 
 echo "🧪 Freelancer1 signs up, verifies, and applies for the task..."
 dfx identity use 0001Freelancer
-dfx canister call backend signUp '(record {name = "0002Freelancer"})'
+dfx canister call backend signUp '(record {name = "0002Freelancer"; email = "freelancer0002@protonmail.com"})'
 code_output=$(dfx canister call backend getVerificationCode)
 code=$(echo "$code_output" | sed -n 's/.*opt (\([0-9_]*\).*/\1/p' | tr -d '_')
 dfx canister call backend enterCodeVerification $code
@@ -150,21 +150,30 @@ dfx identity use 0000TaskOwner
 dfx canister call backend acceptOffer "(1, principal \"${Freelancer1}\")"
 
 
-output=$(dfx canister call backend getTransferArgForTask 1)
+output=$(dfx canister call backend getTransferArgsForTask 1)
 
-# Paso 1: eliminar la primera y última línea
 trimmed=$(echo "$output" | sed '1d;$d')
 
-# Paso 2: eliminar la palabra "opt" y la coma final si está en esa línea
-cleaned=$(echo "$trimmed" | sed 's/^[[:space:]]*opt[[:space:]]*//; s/,[[:space:]]*$//')
+# Paso 2: extraer TODO lo que está entre 'icp = record {' y 'icrc2 = record {'
+icp_block=$(echo "$trimmed" | sed -n '/icp = record {/,/icrc2 = record {/p')
 
-blockIndex=$(dfx canister call icp_ledger icrc1_transfer "($cleaned)" | sed -n 's/.*Ok = \([0-9_]*\) :.*/\1/p')
+# Paso 3: eliminar la última línea (que contiene 'icrc2 = record {')
+icp_block=$(echo "$icp_block" | sed '$d')
+
+# Paso 4: quitar el prefijo "icp = " de la primera línea
+icp_block=$(echo "$icp_block" | sed '1s/^[[:space:]]*icp = //')
+
+# Paso 5: reemplazar SOLO el último '};' por '}'
+icp_clean=$(echo "$icp_block" | sed '${s/};$/}/}')
+
+echo "$icp_clean"
+
+# Paso 4: ejecutar transferencia
+blockIndex=$(dfx canister call icp_ledger transfer "($icp_clean)" \
+  | sed -n 's/.*Ok = \([0-9_]*\) :.*/\1/p')
 
 dfx canister call backend paymentNotification "(
-  1 : nat,
-  $blockIndex : nat64,
-  $cleaned,
-  principal \"ryjl3-tyaaa-aaaaa-aaaba-cai\",
+  record {taskId = 1; blockIndex = $blockIndex}
 )"
 
 echo "✅ Freelancer1 delibery task to TaskOwner0 ..."
@@ -194,6 +203,7 @@ expected_output='(
     record {
       token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
       balance = 556_400_000 : nat;
+      symbol = "LICP";
     };
   },
 )'
@@ -212,6 +222,7 @@ expected_output='(
     record {
       token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
       balance = 156_390_000 : nat;
+      symbol = "LICP";
     };
   },
 )'

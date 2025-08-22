@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@dfinity/auth-client": "^2.4.1",
-    "@dfinity/principal": "^3.1.0",
     "@nuxt/icon": "^1.14.0",
     "@nuxt/image": "^1.10.0",
     "@nuxt/ui": "^3.2.0",

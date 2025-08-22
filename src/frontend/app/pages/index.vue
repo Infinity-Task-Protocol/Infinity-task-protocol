@@ -1,91 +1,241 @@
-<script setup lang="ts">
-import logo5 from '@/assets/images/company/spotify.png'
-const session = useSessionStore()
-const updatedTasks = ref<any[]>([])
-const loading = ref(true)
-
-onMounted(async () => {
-  try {
-    const tasks = await session.backend.getPaginateTaskPreview({
-      page: BigInt(0),
-      qtyPerPage: [BigInt(50)]
-    })
-    updatedTasks.value = tasks.arr.map((task, i) => ({
-      ...task,
-      id: task.id.toString(),
-      name: tasks.arr[i]?.title,
-      image: logo5,
-      salary: `${tasks.arr[i]?.rewardRange[0]} to ${tasks.arr[i]?.rewardRange[1]} USDC`,
-      day: "2 days ago",
-      type: "Full Time",
-      time: "1 to 3 months",
-      language: tasks.arr[i]?.keywords,
-      location: "Argentina"
-    }))
-  } catch (error) {
-    console.error('Error al llamar el método de Motoko:', error)
-  } finally {
-    loading.value = false
-  }
-})
-</script>
-
 <template>
-  <section class="relative table w-full py-36 bg-[url('../../assets/images/hero/bg.jpg')] bg-top bg-no-repeat bg-cover">
-    <div class="absolute inset-0 bg-emerald-900/90"></div>
-    <div class="container">
-      <div class="grid grid-cols-1 text-center mt-10">
-        <h3 class="md:text-3xl text-2xl font-medium text-white">Job Vacancies</h3>
-      </div>
-    </div>
-
-    <div class="absolute text-center z-10 bottom-5 start-0 end-0 mx-3">
-      <ul class="breadcrumb tracking-[0.5px] breadcrumb-light mb-0 inline-block">
-        <li class="inline breadcrumb-item text-[15px] font-semibold text-white/50 hover:text-white">
-          <router-link to="/">Jobstack</router-link>
-        </li>
-        <li class="inline breadcrumb-item text-[15px] font-semibold text-white" aria-current="page">Job Listing</li>
-      </ul>
-    </div>
-  </section>
-
-  <div class="relative">
-    <div class="shape absolute start-0 end-0 sm:-bottom-px -bottom-[2px] overflow-hidden z-1 text-white dark:text-slate-900">
-      <svg class="w-full h-auto" viewBox="0 0 2880 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0 48H2880V0H2160C1442.5 52 720 0 720 0H0V48Z" fill="currentColor" />
-      </svg>
-    </div>
-  </div>
-
-  <section class="relative md:py-24 py-16">
-    <div class="container">
-      <div class="grid md:grid-cols-12 grid-cols-1 gap-[30px]">
-        <JobsSideBar />
-
-        <div class="lg:col-span-8 md:col-span-6">
-          <!-- Skeletons -->
-          <div v-if="loading" class="grid grid-cols-1 gap-[30px]">
-            <TaskSkeletonCard v-for="n in 5" :key="n" />
-          </div>
-
-          <!-- Cards -->
-          <div v-else-if="updatedTasks.length" class="grid grid-cols-1 gap-[30px]">
-            <JobsJobListTaskCard
-                v-for="item in updatedTasks"
-                :key="item.id"
-                v-bind="item"
+  <div>
+    <section class="bg-gray-50 dark:bg-gray-900 py-24 sm:py-32 lg:pb-40">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl text-center">
+          <h1
+              class="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-6xl"
+          >
+            Infinity Tasks Protocol
+          </h1>
+          <p class="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
+            A fully on-chain freelance service platform on the Internet Computer (ICP).
+          </p>
+          <div class="mt-10 flex items-center justify-center gap-x-6">
+            <UButton
+                to="#"
+                size="xl"
+                label="Get Started"
+                icon="i-heroicons-arrow-right-20-solid"
+                trailing
+            />
+            <UButton
+                to="https://github.com/Infinity-Task-Protocol/Infinity-task-protocol/blob/main/Whitepaper.md"
+                size="xl"
+                variant="ghost"
+                label="Read Whitepaper"
             />
           </div>
-
-          <!-- Placeholder sin datos -->
-          <div v-else class="text-center py-16 text-gray-500 dark:text-gray-400">
-            <h2 class="text-xl font-semibold">No hay tareas disponibles</h2>
-            <p class="text-sm mt-2">Vuelve más tarde o intenta con otros filtros.</p>
-          </div>
-
-          <Pagination />
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <section class="bg-white dark:bg-gray-800 py-24">
+      <div class="container mx-auto px-6">
+        <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-white">
+          🚨 The Problem
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+          <UCard>
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon
+                    name="i-heroicons-currency-dollar-20-solid"
+                    class="w-6 h-6 text-red-500"
+                />
+                <h3 class="text-xl font-bold">Excessive Commission Rates</h3>
+              </div>
+            </template>
+            <p>
+              Total fees often range from <strong>20% to 40%</strong>, including
+              platform charges and payment processing cuts.
+            </p>
+          </UCard>
+          <UCard>
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon
+                    name="i-heroicons-clock-20-solid"
+                    class="w-6 h-6 text-red-500"
+                />
+                <h3 class="text-xl font-bold">Holding Periods</h3>
+              </div>
+            </template>
+            <p>
+              Freelancers frequently face <strong>delays</strong> before
+              receiving their earnings.
+            </p>
+          </UCard>
+          <UCard>
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon
+                    name="i-heroicons-credit-card-20-solid"
+                    class="w-6 h-6 text-red-500"
+                />
+                <h3 class="text-xl font-bold">High Withdrawal Costs</h3>
+              </div>
+            </template>
+            <p>
+              Especially in underbanked regions, withdrawal costs can be
+              significant.
+            </p>
+          </UCard>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-gray-50 dark:bg-gray-900 py-24">
+      <div class="container mx-auto px-6">
+        <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-white">
+          💡 Our Solution
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
+          <UCard>
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon
+                    name="i-heroicons-receipt-percent-20-solid"
+                    class="w-6 h-6 text-primary-500"
+                />
+                <h3 class="text-xl font-bold">Fair Commissions</h3>
+              </div>
+            </template>
+            <p>
+              Between <strong>5% and 12%</strong>, all-in, to ensure freelancers
+              get more of what they earn.
+            </p>
+          </UCard>
+          <UCard>
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon
+                    name="i-heroicons-bolt-20-solid"
+                    class="w-6 h-6 text-primary-500"
+                />
+                <h3 class="text-xl font-bold">Instant Payouts</h3>
+              </div>
+            </template>
+            <p>
+              No more waiting. Freelancers get paid <strong>instantly</strong>
+              upon approval of their work.
+            </p>
+          </UCard>
+          <UCard>
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon
+                    name="i-heroicons-wallet-20-solid"
+                    class="w-6 h-6 text-primary-500"
+                />
+                <h3 class="text-xl font-bold">Crypto-Native</h3>
+              </div>
+            </template>
+            <p>
+              Leverage the power of <strong>ICP tokens</strong> for fast and
+              secure payments.
+            </p>
+          </UCard>
+          <UCard>
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon
+                    name="i-heroicons-lock-closed-20-solid"
+                    class="w-6 h-6 text-primary-500"
+                />
+                <h3 class="text-xl font-bold">Fully On-Chain</h3>
+              </div>
+            </template>
+            <p>
+              All logic is built into smart contracts (canisters) for
+              <strong>full transparency</strong>.
+            </p>
+          </UCard>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white dark:bg-gray-800 py-24">
+      <div class="container mx-auto px-6">
+        <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-white">
+          🔁 How It Works
+        </h2>
+        <div class="mt-12 max-w-3xl mx-auto">
+          <UAccordion :items="steps" multiple>
+            <template #item="{ item }">
+              <p class="text-gray-500 dark:text-gray-400 text-base">
+                {{ item.content }}
+              </p>
+            </template>
+          </UAccordion>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-24">
+      <div class="container mx-auto px-6">
+        <UCard
+            class="bg-primary-500 dark:bg-primary-600 text-white text-center p-12"
+        >
+          <h2 class="text-3xl font-bold">
+            Ready to join the future of freelance?
+          </h2>
+          <p class="mt-4 text-lg">
+            Experience low fees, instant payouts, and full transparency.
+          </p>
+          <UButton
+              to="#"
+              size="xl"
+              color="white"
+              class="mt-8"
+          >
+            Get Started Now
+          </UButton>
+        </UCard>
+      </div>
+    </section>
+
+
+
+  </div>
 </template>
+
+<script setup>
+const steps = [
+  {
+    label: 'Task Publishing',
+    icon: 'i-heroicons-document-text-20-solid',
+    content: 'A client publishes a task, including a description and a price range.'
+  },
+  {
+    label: 'Freelancer Offers',
+    icon: 'i-heroicons-light-bulb-20-solid',
+    content: 'Freelancers can submit offers with their proposed fee within the specified range.'
+  },
+  {
+    label: 'Offer Acceptance & Payment',
+    icon: 'i-heroicons-hand-thumb-up-20-solid',
+    content: 'The client accepts an offer and sends ICP tokens to a dedicated subaccount.'
+  },
+  {
+    label: 'Work Delivery & Approval',
+    icon: 'i-heroicons-check-circle-20-solid',
+    content: 'The freelancer submits the task, which the client reviews and approves.'
+  },
+  {
+    label: 'Funds Release & Withdrawal',
+    icon: 'i-heroicons-wallet-20-solid',
+    content: 'Upon approval, the escrow is released and the freelancer can withdraw their earnings at any time.'
+  }
+];
+
+useHead({
+  title: 'Infinity Tasks Protocol - On-Chain Freelance Platform',
+  meta: [
+    {
+      name: 'description',
+      content: 'A fully on-chain freelance platform on the Internet Computer (ICP) with low fees and instant payouts.'
+    }
+  ]
+});
+</script>

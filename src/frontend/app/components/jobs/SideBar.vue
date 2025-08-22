@@ -23,9 +23,10 @@
                     <div>
                         <label class="font-semibold">Location</label>
                         <select class="form-select form-input border border-slate-100 dark:border-slate-800 block w-full mt-1">
-                            <option value="NY">New York</option>
-                            <option value="MC">North Carolina</option>
-                            <option value="SC">South Carolina</option>
+                            <option value="MDQ">Mar del Plata</option>
+                                    <option value="BSAS">Buenos Aires</option>
+                                    <option value="STG">Santiago</option>
+                                    <option value="STC">Santa Cruz</option>
                         </select>
                     </div>
                     
