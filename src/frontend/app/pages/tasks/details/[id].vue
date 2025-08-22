@@ -7,7 +7,7 @@ import { blobToImageUrl } from "@/utils/imageManager"
 const id = useRouteId('id')
 const session = useSessionStore()
 
-const { taskData, bidsDetails, author, isAuthor, loadTask } = useTask()
+const { taskData, bidsDetails, author, isAuthor, loadTask, taskStatus } = useTask()
 
 const isBidModalOpen = ref(false)
 const bidAmount = ref('')
@@ -97,7 +97,7 @@ const blobToImage = (image: number[], _default: string | null)  => {
 
 
 
-          <div class="mt-5" v-if="session.user && !isAuthor">
+          <div class="mt-5" v-if="session.user && !isAuthor && taskStatus === 'ToDo'">
             <button
                 @click="openBidModal"
                 class="py-1 px-5 inline-block font-semibold tracking-wide border align-middle transition duration-500 ease-in-out text-base text-center rounded-md bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700 text-white md:ms-2 w-full md:w-auto"

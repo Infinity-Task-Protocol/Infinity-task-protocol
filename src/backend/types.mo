@@ -71,8 +71,14 @@ module {
 
     public type KindNotification = {
         #NewBid: Nat;
+        #OfferAccepted: Nat;
         #TaskDelivered : Nat;
         #DeliveryAccepted: Nat;
+        // #Msg: {
+        //     name: Text; 
+        //     principal:Principal;
+        //     chatId: Nat
+        // };
     };
 
     public type Msg = {

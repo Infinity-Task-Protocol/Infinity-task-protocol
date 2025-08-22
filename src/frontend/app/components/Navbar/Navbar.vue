@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import { blobToImageUrl } from "../../utils/imageManager";
+import BellIcon from "../icons/BellIcon.vue"
+import MessageIcon from "../icons/MessageIcon.vue"
 
 // 🧩 Props
 defineProps<{
@@ -42,6 +44,18 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("scroll", handleScroll);
 });
+
+const onBellClick = () => {
+  session.notifications.forEach(
+    n => {
+      console.log(n)
+    }
+  )
+}
+
+const onMessageClick = () => {
+  console.log("MessageIcon clicked")
+}
 
 const isOpen = ref(false);
 
@@ -87,6 +101,14 @@ const dropdownItems = [
       </NuxtLink>
 
       <!-- Botón conectar -->
+      <div 
+        v-if="session?.isAuthenticated"
+        class="flex items-center md:order-2 space-x-3"
+      >
+        <BellIcon :qty="session.notifications.filter(n => !n.read).length" @click="onBellClick" />
+        <MessageIcon :qty="session.msgs.length" :class="'white'" @click="onMessageClick" />
+      </div>
+      
       <div
         v-if="!session?.isAuthenticated"
         class="flex items-center md:order-2 space-x-1"

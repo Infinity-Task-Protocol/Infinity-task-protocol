@@ -255,6 +255,8 @@ const handleAcceptBid = async () => {
                 blockIndex : BigInt(transferResponse.height)
               })
               console.log({paymentVerification})
+            } else {
+              console.log("Transferencia no completada")
             }
           } catch (transferError) {
             console.error("Error en la transferencia:", transferError)

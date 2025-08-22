@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import logo5 from '@/assets/images/company/spotify.png'
 import type { TaskPreview } from '../../../../declarations/backend/backend.did'
+import { toBigIntAmount } from '@/utils/token'
 const session = useSessionStore()
-const updatedTasks = ref<any[]>([])
-const tasks = ref<TaskPreview[]>([])
+const tasks = ref<taskPreviewUI[]>([])
 const loading = ref(true)
 const router = useRouter()
 
-const printRangeRewards = (task: TaskPreview) => {
-  const minReward = Number(task.rewardRange[0]) / 10 ** Number(task.token.decimals)
-  const maxReward = Number(task.rewardRange[1]) / 10 ** Number(task.token.decimals)
 
-  return `${minReward} $ ${task.token.symbol} / ${maxReward} $ ${task.token.symbol}`;
-
+interface taskPreviewUI extends Omit<TaskPreview, 'id' | 'createdAt' | 'bidsCounter' | 'status' | 'owner'> {
+  id: number;
+  createdAt: number;
+  bidsCounter: number;
+  status: string;
+  owner: string
 }
 
 onMounted(async () => {
@@ -21,20 +21,20 @@ onMounted(async () => {
       page: BigInt(0),
       qtyPerPage: [BigInt(50)]
     })
-
+  
     tasks.value = (response.arr as TaskPreview[]).map(task => {
       const decimals = Number(task.token.decimals)
-      const minReward = Number(task.rewardRange[0]) / 10 ** decimals
-      const maxReward = Number(task.rewardRange[1]) / 10 ** decimals
+      const minReward = toBigIntAmount(Number(task.rewardRange[0]).toString(), decimals)
+      const maxReward = toBigIntAmount(Number(task.rewardRange[1]).toString(), decimals)
 
       return {
         id: Number(task.id),
-        owner: task.owner,
-        status: typeof task.status === 'string' ? task.status : Object.keys(task.status)[0],
+        owner: task.owner.toString(),
+        status: Object.keys(task.status)[0] || "",
         title: task.title,
         description: task.description,
         keywords: task.keywords,
-        rewardRange: [minReward, maxReward],
+        rewardRange: [minReward, maxReward] as [bigint, bigint],
         token: task.token,
         createdAt: Number(task.createdAt),
         bidsCounter: Number(task.bidsCounter)

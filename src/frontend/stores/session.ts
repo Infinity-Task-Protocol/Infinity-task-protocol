@@ -84,6 +84,7 @@ export const useSessionStore = defineStore('session', () => {
                 msgs.value = response.Ok.msgs
                 console.log('User signed in:', user.value?.name)
                 userBalances.value = await treasury.value.getMyBalances()
+                console.log({notificaciones: notifications.value})
             }
         } catch (error) {
             console.error('Error signing in:', error)

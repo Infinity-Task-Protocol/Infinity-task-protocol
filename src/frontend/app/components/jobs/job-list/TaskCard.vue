@@ -105,19 +105,19 @@ import icon from "@/assets/images/icon-green.png"
 
 const props = defineProps<{
   id: number
-  owner: Principal
+  owner: String
   status: string
   title: string
   description: string
   keywords: string[]
-  rewardRange: [number, number]
+  rewardRange: [bigint, bigint]
   token: { symbol: string; image?: string }
   createdAt: number
   bidsCounter: number
 }>()
 
 const shortOwner = computed(() => {
-  const text = props.owner.toText()
+  const text = props.owner
   return text.slice(0, 5) + "..." + text.slice(-4)
 })
 

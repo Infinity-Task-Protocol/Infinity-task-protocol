@@ -7,7 +7,7 @@ export function useTask() {
   const bidsDetails = ref<TaskExpandResponse['bidsDetails'] | null>(null)
   const author = ref<TaskExpandResponse['author'] | null>(null)
   const isAuthor = ref(false)
-
+  const taskStatus = ref("");
   const loadTask = async (taskId: bigint) => {
     console.log('Loading task:', taskId)
     const taskResponse: Opt<TaskExpandResponse> = await session.backend.expandTask(taskId)
@@ -20,6 +20,7 @@ export function useTask() {
     bidsDetails.value = bids
     author.value = auth
     isAuthor.value = auth.principal.toString() === session.user?.principal.toString()
+    taskStatus.value = Object.keys(taskData.value.status)[0]!
 
     return true
   }
@@ -30,5 +31,6 @@ export function useTask() {
     author,
     isAuthor,
     loadTask,
+    taskStatus
   }
 }
