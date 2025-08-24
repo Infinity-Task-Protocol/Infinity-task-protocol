@@ -127,8 +127,23 @@ This consists of a call from the frontend to the Treasury canister to bring the 
 
 
 ---
+## Development During the National Round
+#### Backend
+##### [Chat Canister](https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=cxypw-rqaaa-aaaak-quliq-cai)
+* Development and integration of the Treasury canister
+   * **Description**:
+      - This module consists of a canister responsible for managing communications between users. Every new user registered on the main platform is automatically added to the Chat canister through an inter-canister call, enabling them to establish contact with other registered users via a communication instance provided by the canister.
+      - Conversations can involve two or more users, and there’s even the possibility for a user to chat with themselves :D. 
+      - All communications between the same group of users within the same context are linked to a single Chat, whose identifier is derived from the participants’ Principal IDs (regardless of order) along with a context parameter.
+      - This context parameter allows multiple separate Chats between the same pair of users, distinguishing conversations by their purpose, for example, separating discussions related to different tasks from direct conversations.
+      - Additionally, every time someone sends a message, a notification is stored for the recipient users. Each notification includes the corresponding Chat ID and the name of the message sender. This allows the frontend to fetch these notifications whenever a user connects to the platform, enabling the user to directly access the referenced chat.
+   * [**Architecture design:**](./diagrams/chat_architecture.drawio)
+      ![alt text](captures/image-10.png)
 
+##### Main Canister updates:
+   
 
+---
 #### ︵‿︵‿︵‿︵ [**Roadmap**](./roadmap.md)
 
 ---

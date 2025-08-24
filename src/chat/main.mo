@@ -175,6 +175,20 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
         }
     };
 
+    public shared query ({ caller }) func readPaginateChat(id: ChatId, page: Nat): async Types.ReadChatResponse{
+        let chat = Map.get<ChatId, Chat>(chats, n32hash, id);
+        switch chat {
+            case null { #Err("Chat not found") };
+            case ( ?chat ) {
+                if (not callerIncluded(caller, chat.users)) { return #Err("Caller is not included in this chat") };
+                let msgsQty = List.size(chat.msgs);
+                let lengthResponse = if (msgsQty >= 10 * page + 10) { 10 } else { msgsQty % 10};
+                let msgs = Array.subArray<Msg>(List.toArray(chat.msgs), 10 * page, lengthResponse);
+                return #Ok({msgs; moreMsg = msgsQty > 10 * page; users = chat.users} )
+            }
+        }
+    };
+
     public shared query({ caller }) func getMyNotifications(): async [Types.Notification]{
         return switch (Map.get<Principal, [Types.Notification]>(notifications, phash, caller)){
             case null {[]};
@@ -214,18 +228,6 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
         #Ok
     };
 
-    public shared ({ caller }) func readPaginateChat(id: ChatId, page: Nat): async Types.ReadChatResponse{
-        let chat = Map.get<ChatId, Chat>(chats, n32hash, id);
-        switch chat {
-            case null { #Err("Chat not found") };
-            case ( ?chat ) {
-                if (not callerIncluded(caller, chat.users)) { return #Err("Caller is not included in this chat") };
-                let msgsQty = List.size(chat.msgs);
-                let lengthResponse = if (msgsQty >= 10 * page + 10) { 10 } else { msgsQty % 10};
-                let msgs = Array.subArray<Msg>(List.toArray(chat.msgs), 10 * page, lengthResponse);
-                return #Ok({msgs; moreMsg = msgsQty > 10 * page; users = chat.users} )
-            }
-        }
-    };
+    
 
 }
