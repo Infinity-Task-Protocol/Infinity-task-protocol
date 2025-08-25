@@ -9,6 +9,7 @@ const session = useSessionStore()
 
 const { taskData, bidsDetails, author, isAuthor, loadTask } = useTask()
 
+
 const isBidModalOpen = ref(false)
 const bidAmount = ref('')
 
@@ -38,9 +39,11 @@ onMounted(async () => {
     console.warn("No task ID found in route params")
     return
   }
+
   const success = await loadTask(BigInt(id))
+
   if (!success) {
-    console.warn("Task not found, exiting component")
+    navigateTo('/')
   }
 })
 
