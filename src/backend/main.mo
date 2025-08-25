@@ -213,6 +213,28 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
     };
   };
 
+  public shared query ({ caller }) func pullingNotifications(): async [Types.Notification]{
+    getNotifications(caller)
+  };
+
+  public shared ({ caller }) func markNotificationAsRead(date: Int): async (){
+    let userNotifications = getNotifications(caller);
+    if (userNotifications.size() == 0) { return };
+    var requiresUpdate = false;
+    let updatedNotifications = Array.map<Types.Notification, Types.Notification> (
+      userNotifications,
+      func n = if (n.date == date) {
+        requiresUpdate := true;
+        {n with read = true}
+      } else { 
+        n 
+      }
+    );
+    if(requiresUpdate){
+      ignore Map.put<Principal, [Types.Notification]>(notifications, phash, caller, updatedNotifications)
+    }
+  };
+
   public shared ({ caller }) func editProfile(data : UserUpdatableData) : async {
     #Ok : User;
     #Err : Text;
@@ -556,75 +578,6 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
       };
     };
   };
-
-  public shared ({ caller }) func paymentNotificationOld(taskId : Nat, index : Nat64, args : Ledger.TransferArg, token : Principal) : async {
-    #Err : Text;
-    #Ok : Nat;
-  } {
-    switch (Map.get<Nat, Task>(activeTasks, nhash, taskId)) {
-      case (?task) {
-
-        if (task.owner != caller) {
-          return #Err("Caller is not the task owner");
-        };
-        let toValidate = args.to == {
-          owner = treasuryCanisterId;
-          subaccount = ?"escrows0000000000000000000000000";
-        };
-        let amountValidate = args.amount == task.finalAmount;
-        if (not toValidate or not amountValidate) {
-          return #Err("Error in trasfer args");
-        };
-        let userAssigned = switch (task.assignedTo) {
-          case null { return #Err("Task not assigned") };
-          case (?u) { u };
-        };
-        let treasuryCanister = actor (Principal.toText(treasuryCanisterId)) : actor {
-          createEscrow : shared (TreasuryTypes.CreateEscrowArgs) -> async {
-            #Ok : Nat;
-            #Err : Text;
-          };
-        };
-        let escrow = await treasuryCanister.createEscrow({
-          platformFee = calculateFee(args.amount);
-          index;
-          transferArg = args;
-          token;
-          userAssigned;
-        });
-
-        switch escrow {
-          case (#Ok(_)) {
-            ignore Map.remove<Nat, AcceptOfferResponse>(transferArgsByTask, nhash, taskId);
-            ignore Map.put<Nat, Task>(
-              activeTasks,
-              nhash,
-              taskId,
-              {
-                task with
-                chatId = ?ChatTypes.getChatId(caller, [userAssigned], ?{ id = Nat.toText(taskId); name = "Task" });
-                status = #PaymentDepositDone(now());
-              },
-            )
-
-          };
-          case (#Err(_)) {};
-        };
-        // Freelancer push Notification
-        pushNotification(
-          userAssigned,
-          {
-            date = now();
-            read = false;
-            kind = #DeliveryAccepted(taskId);
-          },
-        );
-        ////////////////////////////////
-        escrow;
-      };
-      case _ { return #Err("Task not found") };
-    };
-  };
   
   public shared ({ caller }) func paymentNotification({taskId : Nat; blockIndex : Nat64}) : async { #Err : Text; #Ok : Nat } {
     let task = Map.get<Nat, Task>(activeTasks, nhash, taskId);
@@ -686,7 +639,7 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
               {
                 date = now();
                 read = false;
-                kind = #DeliveryAccepted(taskId);
+                kind = #OfferAccepted(taskId);
               },
             );
               ////////////////////////////////
@@ -733,7 +686,7 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
               date = now();
               taskId;
               taskOwner = task.owner;
-              assets = [asset];
+              assets = [asset]; // TODO Almacenar los archivos en canisters tipo Bucket y guardar las referencia a su ubicacion: CanisterBucketId y fileID
               qualification = null;
               review = null;
             };
@@ -844,12 +797,15 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
       case null { [] };
       case (?n) { n };
     };
+    print(debug_show(currentNotifications));
+
     let updatedNotifications = Array.tabulate<Types.Notification>(
       currentNotifications.size() + 1,
       func i = if (i < currentNotifications.size()) { currentNotifications[i] } else {
         notif;
       },
     );
+    print(debug_show(updatedNotifications));
     ignore Map.put<Principal, [Types.Notification]>(notifications, phash, p, updatedNotifications)
 
   };

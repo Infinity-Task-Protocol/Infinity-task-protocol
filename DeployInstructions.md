@@ -63,8 +63,8 @@ Deploying and configuring canister chat
 
 ```sh
 dfx deploy chat
-export chatCanisterID=$(dfx canister id chat --ic)
-dfx canister call backend setChatCanisterId "(principal \"${chatCanisterID}\" --ic)"
+export chatCanisterID=$(dfx canister id chat)
+dfx canister call backend setChatCanisterId "(principal \"${chatCanisterID}\")"
 ```
 
 In case there are already registered users on the platform
