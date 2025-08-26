@@ -46,7 +46,7 @@
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
             <span>💰</span>
-            <span>{{ rewardRange[0] }}-{{ rewardRange[1] }} {{ token.symbol }}</span>
+            <span>{{ Number(rewardRange[0]) / (10 ** Number(token.decimals))}}-{{ Number(rewardRange[1]) / (10 ** Number(token.decimals)) }} {{ token.symbol }}</span>
           </div>
           <div class="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-semibold">
             <span>📊</span>
@@ -111,7 +111,7 @@ const props = defineProps<{
   description: string
   keywords: string[]
   rewardRange: [bigint, bigint]
-  token: { symbol: string; image?: string }
+  token: { symbol: string; image?: string; decimals: bigint }
   createdAt: number
   bidsCounter: number
 }>()

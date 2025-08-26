@@ -24,8 +24,8 @@ onMounted(async () => {
   
     tasks.value = (response.arr as TaskPreview[]).map(task => {
       const decimals = Number(task.token.decimals)
-      const minReward = toBigIntAmount(Number(task.rewardRange[0]).toString(), decimals)
-      const maxReward = toBigIntAmount(Number(task.rewardRange[1]).toString(), decimals)
+      const minReward = task.rewardRange[0]
+      const maxReward = task.rewardRange[1]
 
       return {
         id: Number(task.id),
