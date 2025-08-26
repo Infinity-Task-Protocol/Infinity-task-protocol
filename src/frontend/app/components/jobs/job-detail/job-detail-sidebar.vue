@@ -146,6 +146,7 @@ import type { TaskExpand } from 'declarations/backend/backend.did'
 import type { Offer } from 'declarations/backend/backend.did'
 
 const session = useSessionStore()
+const router = useRouter()
 
 // Estados del modal
 const isAcceptModalOpen = ref(false)
@@ -211,10 +212,7 @@ const handleAcceptBid = async () => {
 
     
     const bidderPrincipal = Principal.fromText(selectedBid.value.id)
-    console.log({Principal : selectedBid.value.id})
-    console.log(taskId)
     const response = await session.backend.acceptOffer(taskId, bidderPrincipal)
-    console.log(response)
     // console.log("{task: task}")
     if("TransactionArgs" in response){
       isAcceptModalOpen.value = false
@@ -223,8 +221,6 @@ const handleAcceptBid = async () => {
       let argsGroup = response.TransactionArgs;
       // const argsFiltered = props.task?.token.symbol === "ICP" ? argsGroup.icrc2: argsGroup.icrc2
       const argsFiltered = argsGroup.icrc2;
-
-      console.log({amount: argsFiltered.amount})
 
       try {
         if(!(await window.ic.plug.isConnected())){
@@ -255,8 +251,7 @@ const handleAcceptBid = async () => {
                 blockIndex : BigInt(transferResponse.height)
               })
               console.log({paymentVerification})
-            } else {
-              console.log("Transferencia no completada")
+              await router.push("/tasks/assigned/" + taskId)
             }
           } catch (transferError) {
             console.error("Error en la transferencia:", transferError)
