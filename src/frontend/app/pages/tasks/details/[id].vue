@@ -6,6 +6,7 @@ import { blobToImageUrl } from "@/utils/imageManager"
 
 const id = useRouteId('id')
 const session = useSessionStore()
+const router = useRouter()
 
 const { taskData, bidsDetails, author, isAuthor, loadTask, taskStatus } = useTask()
 
@@ -14,6 +15,7 @@ const isBidModalOpen = ref(false)
 const bidAmount = ref('')
 
 const openBidModal = () => { isBidModalOpen.value = true }
+
 
 const handleMakeBid = async () => {
   if (!taskData.value) return
@@ -39,11 +41,18 @@ onMounted(async () => {
     console.warn("No task ID found in route params")
     return
   }
-
+  
   const success = await loadTask(BigInt(id))
-
+  
   if (!success) {
-    navigateTo('/')
+    router.push('/')
+  }
+  
+  const isAssigned = taskData.value?.assignedTo[0]?.toString() === session.user?.principal.toString()
+  if(taskData.value?.assignedTo[0] && (isAssigned || isAuthor.value)) {
+    router.push("/tasks/assigned/" + taskData.value?.id)
+  } else {
+    console.log("No puede ver")
   }
 })
 

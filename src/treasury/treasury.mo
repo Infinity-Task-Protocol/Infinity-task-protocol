@@ -12,7 +12,7 @@ import Text "mo:base/Text";
 import Iter "mo:base/Iter";
 import LedgerTypes "../interfaces/ICP_Token/ledger_icp";
 import { print } "mo:base/Debug";
-import Utils "../backend/utils";
+// import Utils "../backend/utils";
 
 
 shared ({caller = superAdmin}) persistent actor class Treasury(initArgs: Types.InitArgs) = this {

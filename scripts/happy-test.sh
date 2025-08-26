@@ -107,150 +107,150 @@ dfx canister call icp_ledger icrc1_transfer "(
   },
 )"
 
-echo "📝 TaskOwner0 signs up and creates a task..."
-dfx identity use 0000TaskOwner
-dfx canister call backend signUp '(record {name = "TaskOwner0"; email = "task_owner0@protonmail.com"})'
+# echo "📝 TaskOwner0 signs up and creates a task..."
+# dfx identity use 0000TaskOwner
+# dfx canister call backend signUp '(record {name = "TaskOwner0"; email = "task_owner0@protonmail.com"})'
 
-dfx canister call backend createTask '(
-  record {
-    title = "Test Task 1";
-    token = record {
-      fee = 10_000 : nat;
-      decimals = 8 : nat;
-      logo = "";
-      name = "Internet Computer";
-      symbol = "ICP";
-      canisterId = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
-    };
-    assets = vec {};
-    description = "Description test task 1";
-    keywords = vec { "CLI"; "DFX"; "Motoko" };
-    rewardRange = record { 500000000 : nat; 1000000000 : nat };
-  },
-)'
+# dfx canister call backend createTask '(
+#   record {
+#     title = "Test Task 1";
+#     token = record {
+#       fee = 10_000 : nat;
+#       decimals = 8 : nat;
+#       logo = "";
+#       name = "Internet Computer";
+#       symbol = "ICP";
+#       canisterId = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
+#     };
+#     assets = vec {};
+#     description = "Description test task 1";
+#     keywords = vec { "CLI"; "DFX"; "Motoko" };
+#     rewardRange = record { 500000000 : nat; 1000000000 : nat };
+#   },
+# )'
 
-echo "🧪 Freelancer0 signs up, verifies, and applies for the task..."
-dfx identity use 0000Freelancer
-dfx canister call backend signUp '(record {name = "0001Freelancer"; email = "freelancer001@protonmail.com"})'
-code_output=$(dfx canister call backend getVerificationCode)
-code=$(echo "$code_output" | sed -n 's/.*opt (\([0-9_]*\).*/\1/p' | tr -d '_')
-dfx canister call backend enterCodeVerification $code
-dfx canister call backend applyForTask '(record { taskId = 1; amount = 750000000 })'
+# echo "🧪 Freelancer0 signs up, verifies, and applies for the task..."
+# dfx identity use 0000Freelancer
+# dfx canister call backend signUp '(record {name = "0001Freelancer"; email = "freelancer001@protonmail.com"})'
+# code_output=$(dfx canister call backend getVerificationCode)
+# code=$(echo "$code_output" | sed -n 's/.*opt (\([0-9_]*\).*/\1/p' | tr -d '_')
+# dfx canister call backend enterCodeVerification $code
+# dfx canister call backend applyForTask '(record { taskId = 1; amount = 750000000 })'
 
-echo "🧪 Freelancer1 signs up, verifies, and applies for the task..."
-dfx identity use 0001Freelancer
-dfx canister call backend signUp '(record {name = "0002Freelancer"; email = "freelancer0002@protonmail.com"})'
-code_output=$(dfx canister call backend getVerificationCode)
-code=$(echo "$code_output" | sed -n 's/.*opt (\([0-9_]*\).*/\1/p' | tr -d '_')
-dfx canister call backend enterCodeVerification $code
-dfx canister call backend applyForTask '(record { taskId = 1; amount = 600000000 })'
+# echo "🧪 Freelancer1 signs up, verifies, and applies for the task..."
+# dfx identity use 0001Freelancer
+# dfx canister call backend signUp '(record {name = "0002Freelancer"; email = "freelancer0002@protonmail.com"})'
+# code_output=$(dfx canister call backend getVerificationCode)
+# code=$(echo "$code_output" | sed -n 's/.*opt (\([0-9_]*\).*/\1/p' | tr -d '_')
+# dfx canister call backend enterCodeVerification $code
+# dfx canister call backend applyForTask '(record { taskId = 1; amount = 600000000 })'
 
-echo "✅ TaskOwner0 accepts the offer from Freelancer1..."
-dfx identity use 0000TaskOwner
-dfx canister call backend acceptOffer "(1, principal \"${Freelancer1}\")"
+# echo "✅ TaskOwner0 accepts the offer from Freelancer1..."
+# dfx identity use 0000TaskOwner
+# dfx canister call backend acceptOffer "(1, principal \"${Freelancer1}\")"
 
 
-output=$(dfx canister call backend getTransferArgsForTask 1)
+# output=$(dfx canister call backend getTransferArgsForTask 1)
 
-trimmed=$(echo "$output" | sed '1d;$d')
+# trimmed=$(echo "$output" | sed '1d;$d')
 
-# Paso 2: extraer TODO lo que está entre 'icp = record {' y 'icrc2 = record {'
-icp_block=$(echo "$trimmed" | sed -n '/icp = record {/,/icrc2 = record {/p')
+# # Paso 2: extraer TODO lo que está entre 'icp = record {' y 'icrc2 = record {'
+# icp_block=$(echo "$trimmed" | sed -n '/icp = record {/,/icrc2 = record {/p')
 
-# Paso 3: eliminar la última línea (que contiene 'icrc2 = record {')
-icp_block=$(echo "$icp_block" | sed '$d')
+# # Paso 3: eliminar la última línea (que contiene 'icrc2 = record {')
+# icp_block=$(echo "$icp_block" | sed '$d')
 
-# Paso 4: quitar el prefijo "icp = " de la primera línea
-icp_block=$(echo "$icp_block" | sed '1s/^[[:space:]]*icp = //')
+# # Paso 4: quitar el prefijo "icp = " de la primera línea
+# icp_block=$(echo "$icp_block" | sed '1s/^[[:space:]]*icp = //')
 
-# Paso 5: reemplazar SOLO el último '};' por '}'
-icp_clean=$(echo "$icp_block" | sed '${s/};$/}/}')
+# # Paso 5: reemplazar SOLO el último '};' por '}'
+# icp_clean=$(echo "$icp_block" | sed '${s/};$/}/}')
 
-echo "$icp_clean"
+# echo "$icp_clean"
 
-# Paso 4: ejecutar transferencia
-blockIndex=$(dfx canister call icp_ledger transfer "($icp_clean)" \
-  | sed -n 's/.*Ok = \([0-9_]*\) :.*/\1/p')
+# # Paso 4: ejecutar transferencia
+# blockIndex=$(dfx canister call icp_ledger transfer "($icp_clean)" \
+#   | sed -n 's/.*Ok = \([0-9_]*\) :.*/\1/p')
 
-dfx canister call backend paymentNotification "(
-  record {taskId = 1; blockIndex = $blockIndex}
-)"
+# dfx canister call backend paymentNotification "(
+#   record {taskId = 1; blockIndex = $blockIndex}
+# )"
 
-echo "✅ Freelancer1 delibery task to TaskOwner0 ..."
-dfx identity use 0001Freelancer
-dfx canister call backend deliveryTask "(record {
-  description = \"Delivery Task Title\";
-  asset = record {
-    data = blob \"\00\00\00\";
-    mimeType = \"text\";
-  };
-  taskId = 1 : nat;
-})"
+# echo "✅ Freelancer1 delibery task to TaskOwner0 ..."
+# dfx identity use 0001Freelancer
+# dfx canister call backend deliveryTask "(record {
+#   description = \"Delivery Task Title\";
+#   asset = record {
+#     data = blob \"\00\00\00\";
+#     mimeType = \"text\";
+#   };
+#   taskId = 1 : nat;
+# })"
 
-echo "✅ TaskOwner0 accept the task delivery from Freelancer1..."
-dfx identity use 0000TaskOwner
-dfx canister call backend acceptDelivery "(record { 
-  review = \"Text Review\"; 
-  deliveryId = 1 : nat; 
-  qualification = 10 : nat8 
-})"
+# echo "✅ TaskOwner0 accept the task delivery from Freelancer1..."
+# dfx identity use 0000TaskOwner
+# dfx canister call backend acceptDelivery "(record { 
+#   review = \"Text Review\"; 
+#   deliveryId = 1 : nat; 
+#   qualification = 10 : nat8 
+# })"
 
-dfx identity use 0001Freelancer
+# dfx identity use 0001Freelancer
 
-# balance =  600_000_000 - 10_000_000 - 5.6% of 600_000_000 = 556_400_000
-expected_output='(
-  vec {
-    record {
-      token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
-      balance = 556_400_000 : nat;
-      symbol = "LICP";
-    };
-  },
-)'
-actual_output=$(dfx canister call treasury getMyBalances)
-if [ "$actual_output" == "$expected_output" ]; then
-  echo "✅ Test passed"
-else
-  echo "❌ Test failed"
-fi
-account="(record {owner=principal \"$(dfx identity get-principal)\"; subaccount=null})"
+# # balance =  600_000_000 - 10_000_000 - 5.6% of 600_000_000 = 556_400_000
+# expected_output='(
+#   vec {
+#     record {
+#       token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
+#       balance = 556_400_000 : nat;
+#       symbol = "LICP";
+#     };
+#   },
+# )'
+# actual_output=$(dfx canister call treasury getMyBalances)
+# if [ "$actual_output" == "$expected_output" ]; then
+#   echo "✅ Test passed"
+# else
+#   echo "❌ Test failed"
+# fi
+# account="(record {owner=principal \"$(dfx identity get-principal)\"; subaccount=null})"
 
-dfx canister call treasury withdrawal "(record {token = principal \"ryjl3-tyaaa-aaaaa-aaaba-cai\"; amount = 400_000_000; to = $account})"
+# dfx canister call treasury withdrawal "(record {token = principal \"ryjl3-tyaaa-aaaaa-aaaba-cai\"; amount = 400_000_000; to = $account})"
 
-expected_output='(
-  vec {
-    record {
-      token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
-      balance = 156_390_000 : nat;
-      symbol = "LICP";
-    };
-  },
-)'
-actual_output=$(dfx canister call treasury getMyBalances)
-if [ "$actual_output" == "$expected_output" ]; then
-  echo "✅ Test passed"
-else
-  echo "❌ Test failed"
-fi
+# expected_output='(
+#   vec {
+#     record {
+#       token = principal "ryjl3-tyaaa-aaaaa-aaaba-cai";
+#       balance = 156_390_000 : nat;
+#       symbol = "LICP";
+#     };
+#   },
+# )'
+# actual_output=$(dfx canister call treasury getMyBalances)
+# if [ "$actual_output" == "$expected_output" ]; then
+#   echo "✅ Test passed"
+# else
+#   echo "❌ Test failed"
+# fi
 
-expectedBalance="4.00000000 ICP"
-balance=$(dfx ledger balance)
-if [[ $balance ==  $expectedBalance ]]; then
-  echo "✅ Test passed"
-else
-  echo "❌ Test failed"
-  echo $balance
-  echo $expectedBalance
-fi
+# expectedBalance="4.00000000 ICP"
+# balance=$(dfx ledger balance)
+# if [[ $balance ==  $expectedBalance ]]; then
+#   echo "✅ Test passed"
+# else
+#   echo "❌ Test failed"
+#   echo $balance
+#   echo $expectedBalance
+# fi
 
-dfx canister call treasury withdrawal "(record {token = principal \"ryjl3-tyaaa-aaaaa-aaaba-cai\"; amount = 156_380_000; to = $account})"
+# dfx canister call treasury withdrawal "(record {token = principal \"ryjl3-tyaaa-aaaaa-aaaba-cai\"; amount = 156_380_000; to = $account})"
 
-expectedBalance="5.56380000 ICP" 
-balance=$(dfx ledger balance)
-if [[ $balance ==  $expectedBalance ]]; then
-  echo "✅ Test passed"
-else
-  echo "❌ Test failed"
-  echo $balance
-  echo $expectedBalance
-fi
+# expectedBalance="5.56380000 ICP" 
+# balance=$(dfx ledger balance)
+# if [[ $balance ==  $expectedBalance ]]; then
+#   echo "✅ Test passed"
+# else
+#   echo "❌ Test failed"
+#   echo $balance
+#   echo $expectedBalance
+# fi

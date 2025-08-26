@@ -150,6 +150,13 @@ This consists of a call from the frontend to the Treasury canister to bring the 
 
 ---
 ## Development During the National Round
+---
+#### Links
+* ##### [Video Pitch](https://www.youtube.com/watch?v=obw4yUROIuk)
+* ##### [Video demo](https://www.youtube.com/watch?v=caDYkg2tioM)
+* ##### [Walking through Chat Canister](https://www.youtube.com/watch?v=HvG3danAk9w)
+* ##### [Video Test. Treasury Canister addToken (Spanish)](https://www.youtube.com/watch?v=aDIGZFAkoqA)
+---
 ### Backend
 + #### [Chat Canister](https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=cxypw-rqaaa-aaaak-quliq-cai)
    + #### [Walkthrough code Video](https://www.youtube.com/watch?v=HvG3danAk9w)

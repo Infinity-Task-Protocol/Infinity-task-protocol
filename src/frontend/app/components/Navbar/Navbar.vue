@@ -106,6 +106,7 @@ const dropdownItems = [
         class="flex items-center md:order-2 space-x-3"
       >
         <BellIcon :qty="session.notifications.filter(n => !n.read).length" @click="onBellClick" />
+          
         <MessageIcon :qty="session.msgs.length" :class="'white'" @click="onMessageClick" />
       </div>
       

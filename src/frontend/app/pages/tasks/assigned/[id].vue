@@ -13,7 +13,6 @@ definePageMeta({
   ],
 });
 
-
 onMounted(async () => {
   if (!id) {
     console.warn("No task ID found in route params")
@@ -30,7 +29,7 @@ onMounted(async () => {
   const assignedTo = taskData.value?.assignedTo?.toString() ?? null
 
   // if you are not the author or the one assigned to the task redirect
-  if (!author || (assignedTo && assignedTo === userPrincipal)) {
+  if (!isAuthor && (assignedTo === userPrincipal)) {
     return await router.push("/")
   }
 })
