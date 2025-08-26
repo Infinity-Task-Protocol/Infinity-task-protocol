@@ -164,12 +164,12 @@ This consists of a call from the frontend to the Treasury canister to bring the 
 
 #### Frontend Canister updates:
 * **Payment Flow for Accepted Offers**
-![alt text](image16.png)
+![alt text](captures/image16.png)
 We've integrated a new payment flow that allows a Task Owner to accept a freelancer's offer and securely process the payment. The new process involves the following steps:
    * Wallet Connection: The user is prompted to connect their Plug wallet to the platform.
-   ![alt text](image17.png)
+   ![alt text](captures/image17.png)
    * Transaction Signature Request: A transaction is generated with the data provided by the backend, and the user is asked to sign it via their Plug wallet. This signature authorizes the payment.
-   ![alt text](image18.png)
+   ![alt text](captures/image18.png)
    * Transaction Confirmation: Upon a successful signature, the frontend receives the transaction's block index, which serves as a confirmation of the on-chain event.
    * Ledger Verification: The system verifies the transaction on the corresponding token's ledger to confirm that the payment has been successfully recorded.
    * Escrow Creation: Once the payment is verified, the existing backend and treasury logic is triggered to generate an escrow in favor of the freelancer. This ensures the funds are held securely until the task is completed.
@@ -190,6 +190,9 @@ We've integrated a new payment flow that allows a Task Owner to accept a freelan
 #### Treasury Canister updates:
 * **Support for anothers tokens icrc2**
 **[Video Test: Adding Supported Token to Treasury Canister](https://www.youtube.com/watch?v=aDIGZFAkoqA&t=7s)**
+
+#### Backend (Main Canister)
+* **Connection for synchronizing user information with the Chat Canister**
 ---
 #### ︵‿︵‿︵‿︵ [**Roadmap**](./roadmap.md)
 
