@@ -4,6 +4,8 @@
 **Infinity Task Protocol** is a fully on-chain platform built on the Internet Computer (ICP), designed to facilitate freelance service exchange between clients and workers with ultra-low fees, instant payouts, and full transparency.
 
 ---
+#### [The progress report for the National stage starts here.](README.md#L154)
+---
 ##### [Whitepaper](Whitepaper.md#L1)
 ---
 This project is licensed under the MIT License – see the [LICENSE](./LICENSE) file for details.
@@ -152,10 +154,10 @@ This consists of a call from the frontend to the Treasury canister to bring the 
 ## Development During the National Round
 ---
 #### Links
-* ##### [Video Pitch](https://www.youtube.com/watch?v=obw4yUROIuk)
-* ##### [Video demo](https://www.youtube.com/watch?v=caDYkg2tioM)
+* ##### [Video Pitch National Round](https://www.youtube.com/watch?v=obw4yUROIuk)
+* ##### [Video demo Narional Round](https://www.youtube.com/watch?v=caDYkg2tioM)
 * ##### [Walking through Chat Canister](https://www.youtube.com/watch?v=HvG3danAk9w)
-* ##### [Video Test. Treasury Canister addToken (Spanish)](https://www.youtube.com/watch?v=aDIGZFAkoqA)
+* ##### [Treasury Canister addToken Test ( Spanish )](https://www.youtube.com/watch?v=aDIGZFAkoqA)
 ---
 ### Backend
 + #### [Chat Canister](https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=cxypw-rqaaa-aaaak-quliq-cai)
