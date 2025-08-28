@@ -225,6 +225,39 @@ We've integrated a new payment flow that allows a Task Owner to accept a freelan
 #### Backend (Main Canister)
 * **Connection for synchronizing user information with the Chat Canister**
 ---
+## Some goals for the regional stage
+### Backend
++ Refactorizar placeBid
+   + amount: Nat
+   + msg: Text
+   + proposal: Text
+   + milestones: [Milestone]
++ Refactorizar deliveryTask
+   + files: [File]
+   + msg: Text
+   + milestone: Nat
++ Main Canister
+   + Email Notifications (optional)
+### Chat canister
+   + VetKey encryption 
+   + Connection with Bucket Factory canister
++ ITP ICRC2 Token deploy
+   + Vesting module development 
+   + Tokenomic
+   + Connection with treasury as minter
+### Bucket Factory Canister Class (New module)
+Canister dedicated to the creation, management, and indexing of bucket-type canisters for on-demand file storage. Both the backend and the Canister Chat can request free asset storage, while optionally allowing external storage requests through a payment model.
+   + Development of a Bucket-class canister for on-demand file persistence, with additional support for storing files larger than 1.8 MiB.
+   + Free storage for Chat and Main canister
+   + Payment required for another callers
+   + VetKey encryption 
+### Frontend
+   + Complete delivery and accepted delivery flow
+   + Balances visualization
+   + Withdraw request
+   + Chat Canister Full connection
+
+
 #### ︵‿︵‿︵‿︵ [**Roadmap**](./roadmap.md)
 
 ---
