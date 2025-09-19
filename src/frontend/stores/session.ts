@@ -7,8 +7,13 @@ import type { User, Notification, Msg, _SERVICE } from '../../declarations/backe
 import { createActor } from '../../declarations/backend'
 import type { _SERVICE as TREASURY_SERVICE, Token, Balance} from '../../declarations/treasury/treasury.did'
 import {createActor as createTreasuryActor } from '../../declarations/treasury'
+
+import type { _SERVICE as CHAT_SERVICE} from '../../declarations/chat/chat.did'
+import {createActor as createChatActor } from '../../declarations/chat'
+
 const canisterId = import.meta.env.VITE_CANISTER_ID_BACKEND as string
 const treasuryCanisterId = import.meta.env.VITE_CANISTER_ID_TREASURY as string
+const chatCanisterId = import.meta.env.VITE_CANISTER_ID_CHAT as string
 const host = import.meta.env.VITE_DFX_NETWORK === 'local'
     ? `http://localhost:4943/?canisterId=rdmx6-jaaaa-aaaaa-aaadq-cai`
     : 'https://identity.ic0.app'
@@ -17,6 +22,7 @@ export const useSessionStore = defineStore('session', () => {
     // 🟢 Estado
     const user = ref<User | null>(null)
     const notifications = ref<Notification[]>([])
+    const msgNotifications = ref<Notification[]>([])
     const msgs = ref<Msg[]>([])
     const identity = ref<Identity>(new AnonymousIdentity())
     const isAuthenticated = ref(false)
@@ -30,6 +36,10 @@ export const useSessionStore = defineStore('session', () => {
         agentOptions: { identity: identity.value, host }
     }))
     const treasury = ref<ActorSubclass<TREASURY_SERVICE>>(createTreasuryActor(treasuryCanisterId, {
+        agentOptions: { identity: identity.value, host }
+    }))
+
+     const chat = ref<ActorSubclass<CHAT_SERVICE>>(createChatActor(chatCanisterId, {
         agentOptions: { identity: identity.value, host }
     }))
 
@@ -49,9 +59,7 @@ export const useSessionStore = defineStore('session', () => {
 
             await setIdentity(newIdentity)
             isAuthenticated.value = !newIdentity.getPrincipal().isAnonymous()
-            console.log(isAuthenticated.value)
             if (isAuthenticated.value) {
-                console.log("autenticando")
                 await signIn()
             }
         } catch (error) {
@@ -70,6 +78,7 @@ export const useSessionStore = defineStore('session', () => {
         })
         backend.value = createActor(canisterId, { agent })
         treasury.value = createTreasuryActor(treasuryCanisterId, {agent})
+        chat.value = createChatActor(chatCanisterId, {agent})
     }
 
     async function signIn() {
@@ -77,15 +86,19 @@ export const useSessionStore = defineStore('session', () => {
         
         try {
             supportedTokens.value = await treasury.value.getSupportedTokens()
+
+            const chatNotifications = chat.value.getMyNotifications() 
             const response = await backend.value.signIn()
+            msgNotifications.value = await chatNotifications;
             if ('Ok' in response) {
                 user.value = response.Ok.user
                 notifications.value = response.Ok.notifications
                 msgs.value = response.Ok.msgs
-                console.log('User signed in:', user.value?.name)
+                // console.log('User signed in:', user.value?.name)
                 userBalances.value = await treasury.value.getMyBalances()
                 console.log({notificaciones: notifications.value})
             }
+
         } catch (error) {
             console.error('Error signing in:', error)
         }
@@ -108,10 +121,10 @@ export const useSessionStore = defineStore('session', () => {
     return {
         // state
         user, notifications, msgs, identity,
-        isAuthenticated, loading, isModalOpen, initialized, backend, treasury,
+        isAuthenticated, loading, isModalOpen, initialized, backend, treasury, chat,
 
         // getters
-        isLoggedIn, unreadNotifications, unreadMessagesCount,
+        isLoggedIn, unreadNotifications, unreadMessagesCount, msgNotifications,
 
         // actions
         init, setIdentity, signIn,

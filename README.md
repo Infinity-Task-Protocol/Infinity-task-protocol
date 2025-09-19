@@ -241,7 +241,7 @@ We've integrated a new payment flow that allows a Task Owner to accept a freelan
 ### Chat canister
    + VetKey encryption 
    + Connection with Bucket Factory canister
-+ ITP ICRC2 Token deploy
+### ITP ICRC2 Token deploy
    + Vesting module development 
    + Tokenomic
    + Connection with treasury as minter

@@ -49,8 +49,10 @@ onMounted(async () => {
   }
   
   const isAssigned = taskData.value?.assignedTo[0]?.toString() === session.user?.principal.toString()
-  if(taskData.value?.assignedTo[0] && (isAssigned || isAuthor.value)) {
-    router.push("/tasks/assigned/" + taskData.value?.id)
+  if(taskData.value?.assignedTo[0] && (isAssigned || isAuthor.value) ) {
+      if(taskStatus.value == "PaymentDepositDone"){
+        router.push("/tasks/assigned/" + taskData.value?.id)
+      }
   } else {
     console.log("No puede ver")
   }

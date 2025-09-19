@@ -27,11 +27,12 @@
               {{ title }}
             </h3>
           </NuxtLink>
-
+          
           <div class="text-xs text-gray-500 dark:text-gray-400">
             <code class="bg-gray-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-emerald-600 dark:text-emerald-400">
               {{ shortOwner }}
             </code>
+            {{ creator.name }}
           </div>
         </div>
       </div>
@@ -102,10 +103,12 @@
 <script setup lang="ts">
 import { Principal } from "@dfinity/principal"
 import icon from "@/assets/images/icon-green.png"
+import type {User} from "declarations/backend/backend.did"
 
 const props = defineProps<{
   id: number
   owner: String
+  creator: User
   status: string
   title: string
   description: string
@@ -125,9 +128,19 @@ const formattedDate = computed(() =>
     new Date(Number(props.createdAt) / 1_000_000).toLocaleDateString()
 )
 
-const tokenImage = computed(() =>
-    props.token.image || icon
-)
+const tokenImage = computed(() => {
+  // Use optional chaining to safely check if 'creator' and 'avatar' exist
+  console.log({avatar: props.creator})
+
+  if (props.creator.thumbnail[0]) {
+    const blob = new Blob([new Uint8Array(props.creator.thumbnail[0])], { type: 'image/png' });
+    return URL.createObjectURL(blob);
+  } else {
+    // If the check fails, return the default icon
+    return icon;
+  }
+});
+
 </script>
 
 <style scoped>

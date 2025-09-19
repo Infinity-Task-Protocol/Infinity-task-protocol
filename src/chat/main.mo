@@ -1,6 +1,7 @@
 import Types "./types";
 import Map "mo:map/Map";
 import { n32hash; phash } "mo:map/Map";
+import { print } "mo:base/Debug";
 import { now } "mo:base/Time";
 import Array "mo:base/Array";
 import List "mo:base/List";
@@ -94,14 +95,14 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
 
     ///////////////// Chat ///////////////////////////////////////////////////
 
-    public shared ({ caller = principal }) func initChat(principalUsers: [Principal], msgContent: MsgContent ): async {#Ok: ChatId; #Err} {
+    public shared ({ caller = principal }) func initChat(principalUsers: [Principal], msgContent: MsgContent, scope: ?Types.Scope ): async {#Ok: ChatId; #Err} {
         assert(isUser(principal));
         let user = Map.get<Principal, Text>(userNames, phash, principal);
         switch user {
             case null {#Err};
             case ( ?user ) {
 
-                let {chatId; sortedUsers; senderIndex} = Types.generateDataFromUsers(principalUsers, principal);
+                let {chatId; sortedUsers; senderIndex} = Types.generateDataFromUsers(principalUsers, principal, scope);
                 let chat = Map.get<ChatId, Chat>(chats, n32hash, chatId);
                 switch chat {
                     case null {
@@ -128,7 +129,7 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
                       chatId;} 
                     )
                 };
-                for (user in principalUsers.vals()){
+                for (user in Array.filter<Principal>(principalUsers, func p = p != principal).vals()){
                     pushNotificationFromChatCanister(user, notification)
                 };
                 #Ok(chatId)
@@ -182,9 +183,9 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
             case ( ?chat ) {
                 if (not callerIncluded(caller, chat.users)) { return #Err("Caller is not included in this chat") };
                 let msgsQty = List.size(chat.msgs);
-                let lengthResponse = if (msgsQty >= 10 * page + 10) { 10 } else { msgsQty % 10};
-                let msgs = Array.subArray<Msg>(List.toArray(chat.msgs), 10 * page, lengthResponse);
-                return #Ok({msgs; moreMsg = msgsQty > 10 * page; users = chat.users} )
+                let lengthResponse = if (msgsQty >= 9 * page + 9) { 9 } else { msgsQty % 9};
+                let msgs = Array.subArray<Msg>(List.toArray(chat.msgs), 9 * page, lengthResponse);
+                return #Ok({msgs = Array.reverse(msgs); moreMsg = msgsQty > 9 * page; users = chat.users} )
             }
         }
     };
@@ -192,7 +193,7 @@ shared ({caller = superAdmin}) persistent actor class ChatCanister(initArgs: Typ
     public shared query({ caller }) func getMyNotifications(): async [Types.Notification]{
         return switch (Map.get<Principal, [Types.Notification]>(notifications, phash, caller)){
             case null {[]};
-            case (?notif) { notif}
+            case (?notif) { notif }
         }
     };
 

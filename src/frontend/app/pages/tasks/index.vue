@@ -29,7 +29,8 @@ onMounted(async () => {
 
       return {
         id: Number(task.id),
-        owner: task.owner.toString(),
+        owner: task.creator.principal.toString(),
+        creator: task.creator,
         status: Object.keys(task.status)[0] || "",
         title: task.title,
         description: task.description,

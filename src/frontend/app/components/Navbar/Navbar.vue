@@ -33,10 +33,20 @@ const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
+let intervalId: NodeJS.Timeout | null = null;
+
+async function pulling() {
+  const notif = session.backend.pullingNotifications();
+  const msgNotif = session.chat.getMyNotifications();
+  session.notifications = await notif;
+  session.msgNotifications = await msgNotif;
+}
+
 // 🎯 Hooks
 onMounted(() => {
   activeMenu.value = window.location.pathname;
   window.addEventListener("scroll", handleScroll);
+  intervalId = setInterval(pulling, 1000);
 
   scrollToTop();
 });
@@ -107,7 +117,7 @@ const dropdownItems = [
       >
         <BellIcon :qty="session.notifications.filter(n => !n.read).length" @click="onBellClick" />
           
-        <MessageIcon :qty="session.msgs.length" :class="'white'" @click="onMessageClick" />
+        <MessageIcon :qty="session.msgNotifications.length" :class="'white'" @click="onMessageClick" />
       </div>
       
       <div

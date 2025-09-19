@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import type { Msg, Participant } from "declarations/chat/chat.did"
 const router = useRouter()
 
-const { taskData, bidsDetails, author, isAuthor, loadTask } = useTask()
+const { taskData, taskStatus, bidsDetails, author, isAuthor, loadTask } = useTask()
 const session = useSessionStore()
 
+interface Chat {
+  msgs: Msg[];
+  users: Participant[];
+  moreMsg: boolean; 
+}
 const id = useRouteId('id')
+const chat = ref<Chat | null >(null)
+const userIndex = ref(0)
 
 definePageMeta({
   middleware: [
@@ -13,28 +21,85 @@ definePageMeta({
   ],
 });
 
+let intervalId: NodeJS.Timeout | null = null;
+
+// Función para leer el chat
+async function readChat() {
+  const response = await session.chat.readPaginateChat(taskData.value?.chatId[0], BigInt(0));
+  if ("Ok" in response) {
+    chat.value = response.Ok as Chat;
+    userIndex.value = chat.value?.users?.findIndex(u =>
+      u.principal.toString() === session.user?.principal.toString()
+    );
+  }
+}
+
 onMounted(async () => {
   if (!id) {
-    console.warn("No task ID found in route params")
-    return navigateTo("/")
+    console.warn("No task ID found in route params");
+    return navigateTo("/");
   }
 
-  const success = await loadTask(BigInt(id))
-  if (!success) {
-    console.warn("Task not found, exiting component")
-    return navigateTo("/")
+  const success = await loadTask(BigInt(id));
+  if (success) {
+    // Realiza la primera llamada inmediatamente
+    await readChat();
+    
+    intervalId = setInterval(readChat, 1000);
+
+  } else {
+    console.warn("Task not found, exiting component");
+    return navigateTo("/");
   }
 
-  const userPrincipal = session.user?.principal?.toString()
-  const assignedTo = taskData.value?.assignedTo?.toString() ?? null
-
-  // if you are not the author or the one assigned to the task redirect
+  const userPrincipal = session.user?.principal?.toString();
+  const assignedTo = taskData.value?.assignedTo?.toString() ?? null;
+  // Si no eres el autor o el asignado, redirige
   if (!isAuthor && (assignedTo === userPrincipal)) {
-    return await router.push("/")
+    return await router.push("/");
   }
-})
+});
 
+// Limpia el intervalo cuando el componente se desmonta
+onUnmounted(() => {
+  if (intervalId !== null) {
+    clearInterval(intervalId);
+  }
+});
 
+// onMounted(async () => {
+//   if (!id) {
+//     console.warn("No task ID found in route params")
+//     return navigateTo("/")
+//   }
+
+//   const success = await loadTask(BigInt(id))
+//   if (success) {
+    
+//     // chat.value = await session.chat.readPaginateChat(, BigInt(0));
+//     const response  = await session.chat.readPaginateChat(taskData.value?.chatId[0], BigInt(0));
+
+//     if ("Ok" in response){
+//       chat.value = response.Ok as Chat
+//       userIndex.value = chat.value?.users?.findIndex(u =>
+//         u.principal.toString() === session.user?.principal.toString()
+//       );
+      
+//     }
+
+//   } else {
+//     console.warn("Task not found, exiting component")
+//     return navigateTo("/")
+//   }
+
+//   const userPrincipal = session.user?.principal?.toString()
+//   const assignedTo = taskData.value?.assignedTo?.toString() ?? null
+//   // if you are not the author or the one assigned to the task redirect
+
+//   if (!isAuthor && (assignedTo === userPrincipal) ) {
+//     return await router.push("/")
+//   }
+// })
 
 
 
@@ -46,62 +111,64 @@ const localtaskData = ref({
   progress: 65 // percentage
 })
 
-const messages = ref([
-  {
-    id: 1,
-    sender: 'client',
-    name: 'Sarah Johnson',
-    avatar: 'https://ui-avatars.io/api/?name=Sarah+Johnson&background=10b981&color=fff',
-    message: "Hi! I've reviewed your initial wireframes and they look great. Can we adjust the color scheme to match our brand?",
-    timestamp: new Date('2025-08-20T10:30:00'),
-    isOwn: false
-  },
-  {
-    id: 2,
-    sender: 'freelancer',
-    name: 'You',
-    avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
-    message: "Absolutely! I'll update the color palette to match your brand guidelines. Could you share your brand colors?",
-    timestamp: new Date('2025-08-20T10:45:00'),
-    isOwn: true
-  },
-  {
-    id: 3,
-    sender: 'client',
-    name: 'Sarah Johnson',
-    avatar: 'https://ui-avatars.io/api/?name=Sarah+Johnson&background=10b981&color=fff',
-    message: "Sure! Primary: #10b981, Secondary: #3b82f6, Accent: #f59e0b. Also, can we add a dark mode toggle?",
-    timestamp: new Date('2025-08-20T11:00:00'),
-    isOwn: false
-  },
-  {
-    id: 4,
-    sender: 'freelancer',
-    name: 'You',
-    avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
-    message: "Perfect! I'll implement those colors and add the dark mode toggle. Should be ready for review by tomorrow.",
-    timestamp: new Date('2025-08-20T11:15:00'),
-    isOwn: true
-  },
-  {
-    id: 3,
-    sender: 'client',
-    name: 'Sarah Johnson',
-    avatar: 'https://ui-avatars.io/api/?name=Sarah+Johnson&background=10b981&color=fff',
-    message: "Sure! Primary: #10b981, Secondary: #3b82f6, Accent: #f59e0b. Also, can we add a dark mode toggle?",
-    timestamp: new Date('2025-08-20T11:00:00'),
-    isOwn: false
-  },
-  {
-    id: 4,
-    sender: 'freelancer',
-    name: 'You',
-    avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
-    message: "Perfect! I'll implement those colors and add the dark mode toggle. Should be ready for review by tomorrow.",
-    timestamp: new Date('2025-08-20T11:15:00'),
-    isOwn: true
-  }
-])
+// const messages = ref([
+//   {
+//     id: 1,
+//     sender: 'client',
+//     name: 'Sarah Johnson',
+//     avatar: 'https://ui-avatars.io/api/?name=Sarah+Johnson&background=10b981&color=fff',
+//     message: "Hi! I've reviewed your initial wireframes and they look great. Can we adjust the color scheme to match our brand?",
+//     timestamp: new Date('2025-08-20T10:30:00'),
+//     isOwn: false
+//   },
+//   {
+//     id: 2,
+//     sender: 'freelancer',
+//     name: 'You',
+//     avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
+//     message: "Absolutely! I'll update the color palette to match your brand guidelines. Could you share your brand colors?",
+//     timestamp: new Date('2025-08-20T10:45:00'),
+//     isOwn: true
+//   },
+//   {
+//     id: 3,
+//     sender: 'client',
+//     name: 'Sarah Johnson',
+//     avatar: 'https://ui-avatars.io/api/?name=Sarah+Johnson&background=10b981&color=fff',
+//     message: "Sure! Primary: #10b981, Secondary: #3b82f6, Accent: #f59e0b. Also, can we add a dark mode toggle?",
+//     timestamp: new Date('2025-08-20T11:00:00'),
+//     isOwn: false
+//   },
+//   {
+//     id: 4,
+//     sender: 'freelancer',
+//     name: 'You',
+//     avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
+//     message: "Perfect! I'll implement those colors and add the dark mode toggle. Should be ready for review by tomorrow.",
+//     timestamp: new Date('2025-08-20T11:15:00'),
+//     isOwn: true
+//   },
+//   {
+//     id: 3,
+//     sender: 'client',
+//     name: 'Sarah Johnson',
+//     avatar: 'https://ui-avatars.io/api/?name=Sarah+Johnson&background=10b981&color=fff',
+//     message: "Sure! Primary: #10b981, Secondary: #3b82f6, Accent: #f59e0b. Also, can we add a dark mode toggle?",
+//     timestamp: new Date('2025-08-20T11:00:00'),
+//     isOwn: false
+//   },
+//   {
+//     id: 4,
+//     sender: 'freelancer',
+//     name: 'You',
+//     avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
+//     message: "Perfect! I'll implement those colors and add the dark mode toggle. Should be ready for review by tomorrow.",
+//     timestamp: new Date('2025-08-20T11:15:00'),
+//     isOwn: true
+//   }
+// ])
+
+
 
 const milestones = ref([
   {
@@ -169,21 +236,40 @@ const formatTime = (date: Date) => {
   })
 }
 
-const sendMessage = () => {
-  if (!newMessage.value.trim()) return
+const sendMessage = async () => {
+  const msg = newMessage.value.trim()
+  if(msg) {
+    const response = await session.chat.initChat(
+      [taskData.value?.assignedTo[0], taskData.value?.owner], 
+      {msg: msg, multimedia: []}, 
+      [{name: "Task", id: taskData.value?.id}]
+    )
+    console.log(response)
+  } else {
+    return
+  }
   
-  messages.value.push({
-    id: messages.value.length + 1,
-    sender: 'freelancer',
-    name: 'You',
-    avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
-    message: newMessage.value,
-    timestamp: new Date(),
-    isOwn: true
-  })
+  // messages.value.push({
+  //   id: messages.value.length + 1,
+  //   sender: 'freelancer',
+  //   name: 'You',
+  //   avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
+  //   message: newMessage.value,
+  //   timestamp: new Date(),
+  //   isOwn: true
+  // })
   
   newMessage.value = ''
 }
+
+const getUserName = (index: BigInt) => {
+  return chat.value?.users[Number(index)]?.name
+}
+
+// const getThumbnail = (index: BigInt) => {
+//   return chat.value?.users[Number(index)]
+// }
+
 
 const deliverTask = () => {
   // Handle task delivery logic here
@@ -238,34 +324,43 @@ const deliverTask = () => {
             <!-- Messages Container -->
             <div class="flex flex-col flex-1 overflow-y-auto space-y-4 mb-4 pr-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
               <div 
-                v-for="message in messages" 
-                :key="message.id"
+                v-for="message in chat?.msgs" 
+                :key="Number(message.date)"
                 :class="[
                   'flex gap-3',
-                  message.isOwn ? 'flex-row-reverse' : 'flex-row'
+                  Number(message.sender) == userIndex ? 
+                    'flex-row-reverse'  : 
+                    'flex-row'
                 ]"
               >
-                <UAvatar 
-                  :src="message.avatar" 
-                  :alt="message.name"
-                  size="sm"
-                  class="flex-shrink-0"
-                />
+              
                 <div :class="[
                   'max-w-xs lg:max-w-md',
-                  message.isOwn ? 'text-right' : 'text-left'
+                  'text-left'
                 ]">
                   <div :class="[
                     'rounded-2xl px-4 py-2 text-sm',
-                    message.isOwn 
-                      ? 'bg-emerald-600 text-white rounded-br-sm' 
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-sm'
+                    Number(message.sender) == userIndex ? 
+                      'bg-[#144D37]':
+                      'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-sm'
+                    // session.user?.principal == message.users[message.msg.sender] ?   'text-left':'text-right'
                   ]">
-                    {{ message.message }}
+                    <div :class ="[
+                      'flex justify-between',
+                      'mt-2 text-gray-500 text-xs',
+                      'min-w-100' 
+                    ]"> 
+                      <span>{{ getUserName(message.sender) }}</span>
+                      <!-- <span>{{ getThumbnail(message.sender) }}</span> -->
+                      <span>{{ new Date(Number(message.date / 1000000n)).toLocaleString() }}</span>
+                    </div>
+                    <div :class="[
+                      
+                    ]">
+                      {{ message.msg }}
+                    </div>
                   </div>
-                  <div class="text-xs text-slate-500 mt-1">
-                    {{ formatTime(message.timestamp) }}
-                  </div>
+                  
                 </div>
               </div>
             </div>

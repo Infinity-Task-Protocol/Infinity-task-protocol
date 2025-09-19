@@ -3,6 +3,7 @@ import Text "mo:base/Text";
 import Array "mo:base/Array";
 import List "mo:base/List";
 import Order "mo:base/Order";
+import Int "mo:base/Int";
 import Set "mo:map/Set";
 import { phash } "mo:map/Map";
 
@@ -43,7 +44,7 @@ module {
 
     public type Scope = {
         name: Text;
-        id: Text;
+        id: Int;
     };
 
     public type Media = {
@@ -90,31 +91,36 @@ module {
         List.toArray<T>(List.reverse(listResult))
     };
 
-    public func generateDataFromUsers(users: [Principal], sender: Principal): {chatId: Nat32; sortedUsers: [Principal]; senderIndex: Nat} {
+    public func generateDataFromUsers(users: [Principal], sender: Principal, scope: ?Scope): {chatId: Nat32; sortedUsers: [Principal]; senderIndex: Nat} {
         let usersSet = Set.fromIter<Principal>(users.vals(), phash);
         ignore Set.put<Principal>(usersSet, phash, sender);
         let sortedUsers = Array.sort<Principal>(
             Set.toArray<Principal>(usersSet),
             Principal.compare
         );
-        var usersPrehash = "";
+        // var usersPrehash = "";
         var index = 0;
         var senderIndex = 0;
         
         for(user in sortedUsers.vals()){
-            usersPrehash #= Principal.toText(user);
             if (user == sender) { senderIndex := index };
             index += 1;
         };
-        let chatId = Text.hash(usersPrehash);
+        // usersPrehash #= switch scope{
+        //     case null {""};
+        //     case ( ?s ) {
+        //         s.name # s.id
+        //     }
+        // };
+        // let chatId = Text.hash(usersPrehash);
+        let chatId = getChatId(sender, users, scope);
         {chatId; sortedUsers; senderIndex}
     };
 
     public func getChatId(caller: Principal, interlocutors: [Principal], scope: ?Scope): Nat32 {
-        let users = Array.tabulate<Principal>(
-            interlocutors.size() +1,
-            func i = if (i < interlocutors.size()) { interlocutors[i] } else { caller }
-        );
+        let usersSet = Set.fromIter<Principal>(interlocutors.vals(), phash);
+        Set.add<Principal>(usersSet, phash, caller);
+        let users = Set.toArray<Principal>(usersSet);
         let sortedUsers = uniqueSorted<Principal>(users, Principal.compare);
         var accumulator = "";
         for (user in sortedUsers.vals()) {
@@ -122,7 +128,7 @@ module {
         };
         accumulator #= switch scope {
             case null "";
-            case (?{name; id}) { name # id } 
+            case (?{name; id}) { name # Int.toText(id) } 
         };
         Text.hash(accumulator);
     };

@@ -173,7 +173,8 @@ module {
 
     public type TaskPreview = {
         id : Nat;
-        owner : Principal;
+        // owner : Principal;
+        creator : UserPreview;
         status : TaskStatus;
         title : Text;
         description : Text;
@@ -185,6 +186,7 @@ module {
     };
 
     public type Task = TaskExpand and {
+        creator : UserPreview;
         bids : Map.Map<Principal, Offer>;
         finalAmount : Nat;
         payed: Bool;
@@ -238,6 +240,7 @@ module {
             title = "";
             chatId = null;
             deliveries = [];
+            creator = DefaultUser();
         }
 
     }

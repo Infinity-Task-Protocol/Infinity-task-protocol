@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { ref, onMounted } from 'vue'
+  import { reloadNuxtApp } from '#app';
 
   definePageMeta({
     middleware: [
@@ -64,7 +65,6 @@
 
   // Manejo de verificación
   async function handleVerification() {
-    console.log(session.user)
     let res = false
     try {
       isVerifying.value = true
@@ -72,8 +72,13 @@
       if (res) {
         if (session.user) { // Asegúrate de que session.user no sea null antes de intentar acceder a 'verified'
           session.user.verified = true; // Marca el usuario como verificado en el store de sesión
+          await session.init() 
         }
-        await router.push('/tasks')
+        reloadNuxtApp({
+          path: '/', 
+          force: true,
+          ttl: 5000
+        });
       }
     } catch (e) {
       console.error("Verification error", e)

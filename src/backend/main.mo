@@ -350,6 +350,7 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
       rewardRange;
       title;
       assets;
+      creator = user;
     };
 
     ignore Map.put<Nat, Task>(activeTasks, nhash, lastTaskId, newTask);
@@ -625,7 +626,7 @@ shared ({ caller = DEPLOYER }) persistent actor class () {
                   taskId,
                   {
                     task with
-                    chatId = ?ChatTypes.getChatId(caller, [assignedTo], ?{ id = Nat.toText(taskId); name = "Task" });
+                    chatId = ?ChatTypes.getChatId(caller, [assignedTo], ?{ id =taskId; name = "Task" });
                     status = #PaymentDepositDone(now());
                   },
                 )

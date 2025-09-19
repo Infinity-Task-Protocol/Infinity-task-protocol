@@ -9,9 +9,9 @@ export function useTask() {
   const isAuthor = ref(false)
   const taskStatus = ref("");
   const loadTask = async (taskId: bigint) => {
-    console.log('Loading task:', taskId)
+    // console.log('Loading task:', taskId)
     const taskResponse: Opt<TaskExpandResponse> = await session.backend.expandTask(taskId)
-    console.log('Task response:', taskResponse)
+    // console.log('Task response:', taskResponse)
     if (taskResponse.length === 0) return false
 
     const { task, bidsDetails: bids, author: auth } = taskResponse[0]
