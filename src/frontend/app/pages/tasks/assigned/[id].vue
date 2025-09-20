@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Msg, Participant } from "declarations/chat/chat.did"
+import type { DeliveryTask } from 'declarations/backend/backend.did'
+// import { UFileUpload } from "@nuxt/ui/components/u"
+
+
 const router = useRouter()
 
 const { taskData, taskStatus, bidsDetails, author, isAuthor, loadTask } = useTask()
@@ -67,42 +71,6 @@ onUnmounted(() => {
   }
 });
 
-// onMounted(async () => {
-//   if (!id) {
-//     console.warn("No task ID found in route params")
-//     return navigateTo("/")
-//   }
-
-//   const success = await loadTask(BigInt(id))
-//   if (success) {
-    
-//     // chat.value = await session.chat.readPaginateChat(, BigInt(0));
-//     const response  = await session.chat.readPaginateChat(taskData.value?.chatId[0], BigInt(0));
-
-//     if ("Ok" in response){
-//       chat.value = response.Ok as Chat
-//       userIndex.value = chat.value?.users?.findIndex(u =>
-//         u.principal.toString() === session.user?.principal.toString()
-//       );
-      
-//     }
-
-//   } else {
-//     console.warn("Task not found, exiting component")
-//     return navigateTo("/")
-//   }
-
-//   const userPrincipal = session.user?.principal?.toString()
-//   const assignedTo = taskData.value?.assignedTo?.toString() ?? null
-//   // if you are not the author or the one assigned to the task redirect
-
-//   if (!isAuthor && (assignedTo === userPrincipal) ) {
-//     return await router.push("/")
-//   }
-// })
-
-
-
 // Mock data for demonstration
 const localtaskData = ref({
   title: "Build Modern Dashboard UI",
@@ -110,65 +78,6 @@ const localtaskData = ref({
   endDate: new Date('2025-08-30'),
   progress: 65 // percentage
 })
-
-// const messages = ref([
-//   {
-//     id: 1,
-//     sender: 'client',
-//     name: 'Sarah Johnson',
-//     avatar: 'https://ui-avatars.io/api/?name=Sarah+Johnson&background=10b981&color=fff',
-//     message: "Hi! I've reviewed your initial wireframes and they look great. Can we adjust the color scheme to match our brand?",
-//     timestamp: new Date('2025-08-20T10:30:00'),
-//     isOwn: false
-//   },
-//   {
-//     id: 2,
-//     sender: 'freelancer',
-//     name: 'You',
-//     avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
-//     message: "Absolutely! I'll update the color palette to match your brand guidelines. Could you share your brand colors?",
-//     timestamp: new Date('2025-08-20T10:45:00'),
-//     isOwn: true
-//   },
-//   {
-//     id: 3,
-//     sender: 'client',
-//     name: 'Sarah Johnson',
-//     avatar: 'https://ui-avatars.io/api/?name=Sarah+Johnson&background=10b981&color=fff',
-//     message: "Sure! Primary: #10b981, Secondary: #3b82f6, Accent: #f59e0b. Also, can we add a dark mode toggle?",
-//     timestamp: new Date('2025-08-20T11:00:00'),
-//     isOwn: false
-//   },
-//   {
-//     id: 4,
-//     sender: 'freelancer',
-//     name: 'You',
-//     avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
-//     message: "Perfect! I'll implement those colors and add the dark mode toggle. Should be ready for review by tomorrow.",
-//     timestamp: new Date('2025-08-20T11:15:00'),
-//     isOwn: true
-//   },
-//   {
-//     id: 3,
-//     sender: 'client',
-//     name: 'Sarah Johnson',
-//     avatar: 'https://ui-avatars.io/api/?name=Sarah+Johnson&background=10b981&color=fff',
-//     message: "Sure! Primary: #10b981, Secondary: #3b82f6, Accent: #f59e0b. Also, can we add a dark mode toggle?",
-//     timestamp: new Date('2025-08-20T11:00:00'),
-//     isOwn: false
-//   },
-//   {
-//     id: 4,
-//     sender: 'freelancer',
-//     name: 'You',
-//     avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
-//     message: "Perfect! I'll implement those colors and add the dark mode toggle. Should be ready for review by tomorrow.",
-//     timestamp: new Date('2025-08-20T11:15:00'),
-//     isOwn: true
-//   }
-// ])
-
-
 
 const milestones = ref([
   {
@@ -209,6 +118,14 @@ const milestones = ref([
 ])
 
 const newMessage = ref('')
+const deliveryModal = ref(false)
+const deliveryReview = ref(false)
+
+
+const togleDeliveryModal = () => {
+  deliveryModal.value = !deliveryModal.value
+}
+
 
 // Computed properties
 const timeRemaining = computed(() => {
@@ -244,21 +161,9 @@ const sendMessage = async () => {
       {msg: msg, multimedia: []}, 
       [{name: "Task", id: taskData.value?.id}]
     )
-    console.log(response)
   } else {
     return
   }
-  
-  // messages.value.push({
-  //   id: messages.value.length + 1,
-  //   sender: 'freelancer',
-  //   name: 'You',
-  //   avatar: 'https://ui-avatars.io/api/?name=John+Doe&background=3b82f6&color=fff',
-  //   message: newMessage.value,
-  //   timestamp: new Date(),
-  //   isOwn: true
-  // })
-  
   newMessage.value = ''
 }
 
@@ -266,15 +171,72 @@ const getUserName = (index: BigInt) => {
   return chat.value?.users[Number(index)]?.name
 }
 
-// const getThumbnail = (index: BigInt) => {
-//   return chat.value?.users[Number(index)]
-// }
+const toogleDeliveryReview = async () => {
+  const deliveries = taskData.value?.deliveries
+  if (deliveries){
+    console.log({deliveries})
+    const lastDelivery = deliveries[deliveries.length > 0 ? deliveries.length - 1: 0]
+    const response = await session.backend.checkDelivery(2)
+    console.log(response)
 
+  }
 
-const deliverTask = () => {
-  // Handle task delivery logic here
-  console.log('Delivering task...')
+  deliveryReview.value = !deliveryModal.value
 }
+
+const form = ref({
+  msg: '',
+  asset: {
+    data: new Uint8Array(), 
+    mimeType: '',
+  }
+} as { msg: string; asset: { mimeType: string; data: Uint8Array } })
+
+const handleDeliveryTask = async () => {
+  const response = await session.backend.deliveryTask({
+    taskId: taskData.value?.id,
+    description: form.value.msg,
+    asset: form.value.asset,
+  })
+  console.log(response)
+}
+
+function fileToUint8Array(file: File): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        const uint8Array = new Uint8Array(reader.result)
+        resolve(uint8Array)
+      } else {
+        reject(new Error("La lectura del archivo no resultó en un ArrayBuffer."))
+      }
+    }
+    reader.onerror = reject
+    reader.readAsArrayBuffer(file)
+  })
+}
+
+async function handleFileChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  try {
+    const mimeType = file.type
+    const uint8Array = await fileToUint8Array(file)
+
+    form.value.asset = {
+      mimeType,
+      data: uint8Array,
+    }
+
+    console.log("Archivo convertido a Uint8Array:", uint8Array)
+  } catch (error) {
+    console.error("Error al convertir el archivo:", error)
+  }
+}
+
 </script>
 
 <template>
@@ -380,8 +342,119 @@ const deliverTask = () => {
                 color="emerald"
               />
             </div>
+            <div v-if="session.user?.principal.toString() == taskData?.assignedTo.toString()">
+              <div
+                @click="togleDeliveryModal"
+                class="
+                    w-60 text-center mt-50 ml-50
+                    py-2.5 px-5 rounded-md font-medium text-gray-100
+                    bg-gray-800 border border-gray-700
+                    hover:bg-gray-700
+                    shadow-sm hover:shadow-md
+                    cursor-pointer
+                    transition-colors duration-200 ease-in-out
+                "
+                >
+                Delivery Task
+              </div>            
+            </div>
+            <div v-if="session.user?.principal.toString() == taskData?.owner.toString()">
+
+              <div
+              @click="toogleDeliveryReview"
+              class="
+              relative w-60 text-center mt-50 ml-50
+              py-3 px-6 rounded-lg font-bold text-white
+              bg-green-500 hover:bg-green-800
+              cursor-pointer
+              transition-colors duration-50 ease-in-out animate-pulse
+              "
+              >
+              <span class="relative z-10">Revisar Entrega</span>
+            </div>
+          </div>
           </UCard>
         </div>
+
+        <!-- Delivery Modal  -->
+
+        <UModal v-model:open="deliveryModal" title="Delivery task form">
+          <template #body>  
+              <div>
+                <textarea 
+                  name="" id="deliveryMsg"
+                  class="border w-full h-30 p-2"
+                  v-model="form.msg"
+                >
+                </textarea>
+
+                <div class="space-y-4">
+                  <input 
+                    type="file"
+                    @change="handleFileChange"
+                    class="form-input mt-1 border" 
+                  />
+                </div>          
+              </div>
+          </template>
+
+          <template #footer="{ close }">
+            <div class="flex justify-end space-x-2">
+              <button
+                  @click="close"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 dark:bg-slate-700 dark:text-gray-300 dark:hover:bg-slate-600"
+              >
+                Cancel
+              </button>
+              <button
+                  @click="handleDeliveryTask"
+                  class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Submit Bid
+              </button>
+            </div>
+          </template>
+        </UModal>
+
+        <UModal v-model:open="deliveryReview" title="Delivery task">
+          <template #body>  
+              <div>
+                <textarea 
+                  name="" id="deliveryMsg"
+                  class="border w-full h-30 p-2"
+                  v-model="form.msg"
+                >
+                </textarea>
+
+                <div class="space-y-4">
+                  <input 
+                    type="file"
+                    @change="handleFileChange"
+                    class="form-input mt-1 border" 
+                  />
+                </div>          
+              </div>
+          </template>
+
+          <template #footer="{ close }">
+            <div class="flex justify-end space-x-2">
+              <button
+                  @click="close"
+                  class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 dark:bg-slate-700 dark:text-gray-300 dark:hover:bg-slate-600"
+              >
+                Reject
+              </button>
+              <button
+                  @click="handleDeliveryTask"
+                  class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Accept
+              </button>
+            </div>
+          </template>
+        </UModal>
+
+
 
         <!-- Milestones Sidebar -->
         <div class="lg:col-span-1">

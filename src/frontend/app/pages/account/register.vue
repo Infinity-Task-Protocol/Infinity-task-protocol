@@ -55,6 +55,20 @@
       isGettingCode.value = true
       const code = await session.backend.getVerificationCode()
       console.log(code)
+      // registerForm.value = code.toString()
+      const res = await session.backend.enterCodeVerification(BigInt(code))
+      console.log(res)
+      if (res) {
+        if (session.user) { // Asegúrate de que session.user no sea null antes de intentar acceder a 'verified'
+          session.user.verified = true; // Marca el usuario como verificado en el store de sesión
+          await session.init() 
+        }
+        reloadNuxtApp({
+          path: '/', 
+          force: true,
+          ttl: 5000
+        });
+      }
     } catch (e) {
       console.error('Error getting code', e)
     } finally {

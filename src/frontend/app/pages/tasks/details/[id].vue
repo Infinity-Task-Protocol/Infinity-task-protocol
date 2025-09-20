@@ -50,7 +50,7 @@ onMounted(async () => {
   
   const isAssigned = taskData.value?.assignedTo[0]?.toString() === session.user?.principal.toString()
   if(taskData.value?.assignedTo[0] && (isAssigned || isAuthor.value) ) {
-      if(taskStatus.value == "PaymentDepositDone"){
+      if(taskStatus.value == "PaymentDepositDone" || taskStatus.value === "Delivered"){
         router.push("/tasks/assigned/" + taskData.value?.id)
       }
   } else {

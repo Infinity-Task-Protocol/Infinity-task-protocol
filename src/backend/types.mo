@@ -169,6 +169,7 @@ module {
         assignedTo : ?Principal;
         bidsCounter : Nat;
         chatId: ?Nat32;
+        deliveries: [Nat];
     };
 
     public type TaskPreview = {
@@ -192,8 +193,7 @@ module {
         payed: Bool;
         memoTransaction: ?Blob;
         start : ?Int;
-        chatId: ?Nat32;
-        deliveries: [Nat];
+        chatId: ?Nat32;   
     };
 
     public type UpdatableDataTask = {
